@@ -1,19 +1,5 @@
-# coding=utf-8
-# Copyright 2020 The Google Research Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-"""Simple openloop trajectory generators."""
+"""Simple  trajectory generators."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -92,7 +78,7 @@ class SimpleTGGroup(object):
 
     Args:
       current_time: The time in gym env since reset.
-      input_action: A numpy array. The input [leg pose]  and [trajectory parameters} from a NN controller.
+      input_action: A numpy array. The input [leg correction] and [trajectory parameters} from a NN controller.
 
     Returns:
       A numpy array. The desired motor angles.
@@ -115,14 +101,12 @@ class SimpleTGGroup(object):
         tg_pose[leg_num*num_joint_in_leg : (leg_num+1)*num_joint_in_leg] =  \
             self._tg[leg_num].get_trajectory(self._phi_t)
 
-
-
     return self._pose + input_action[:num_joint] + tg_pose
 
   def get_observation(self, input_observation):
     """Get the trajectory generator's observation."""
 
-    return input_observation
+    return np.concatenate(input_observation , self._phi_t)
 
   def unpack_params(self, params , key=-1):
 
