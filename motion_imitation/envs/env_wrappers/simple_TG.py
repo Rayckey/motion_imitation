@@ -37,6 +37,17 @@ class SimpleTG(object):
         ##################################
         # tunable parameters
         # phi_leg, delta_phi, alpha_tg, Ae, Cs, t_p, theta, z, h_tg, k_sle, phi_t, f_tg, beta
+
+        self._alpha_tg = 0
+        self._Ae = 0
+        self._Cs = 0
+        self._theta = 0
+        self._z = 0
+        self._h_tg = 0
+        self._k_sle = 0
+        self._delta_phi = 0
+        self._beta = 0
+
         self.unpack_params(init_params)
 
         # upstream tunable
@@ -84,8 +95,9 @@ class SimpleTG(object):
         return h_tg
 
     def _genertate_trajectory(self, alpha_tg, Ae, Cs, t_p, h_leg, theta, z):
-        x = Cs + alpha_tg * np.cos(t_p)
+        swing = Cs + alpha_tg * np.cos(t_p)
         y = h_leg + Ae * np.sin(t_p) + theta * np.cos(t_p)
+        x = - np.tan(swing) * y
         return x, y, z
 
     def unpack_params(self, params):
@@ -110,7 +122,7 @@ class SimpleTG(object):
         phi1 = np.arcsin(l1 / l2)
         phi2 = np.arctan2(-z, -y)
 
-        theta = np.pi/2.0 - phi1 + phi2
+        theta = np.pi / 2.0 - phi1 + phi2
 
         tip_2_hip_extent = -(y * np.cos(theta) + z * np.sin(theta))
 
