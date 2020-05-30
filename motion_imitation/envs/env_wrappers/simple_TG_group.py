@@ -149,7 +149,7 @@ class SimpleTGGroup(object):
     def get_observation(self, input_observation):
         """Get the trajectory generator's observation."""
 
-        return np.concatenate(input_observation, self._phi_t)
+        return np.concatenate([input_observation, np.array([self._phi_t])])
 
     def unpack_params(self, params, key=-1):
 

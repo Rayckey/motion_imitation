@@ -67,7 +67,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
   #                                                                      trajectory_generator=simple_openloop.LaikagoPoseOffsetGenerator(action_limit=laikago.UPPER_BOUND))
 
   env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
-                                                                       trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=laikago.UPPER_BOUND , params_limit=None))
+                                                                       trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=laikago.UPPER_BOUND , init_lg_param=None))
 
   if mode == "test":
       curriculum_episode_length_start = curriculum_episode_length_end

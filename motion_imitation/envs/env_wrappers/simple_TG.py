@@ -141,8 +141,8 @@ class SimpleTG(object):
 
         tip_2_hip_x = x
 
-        print(tip_2_hip_x)
-        print(tip_2_hip_extent)
+        # print(tip_2_hip_x)
+        # print(tip_2_hip_extent)
 
         c = np.sqrt(x * x + tip_2_hip_extent * tip_2_hip_extent)
 
@@ -186,7 +186,7 @@ class SimpleTG(object):
         res[2] -= laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE
 
 
-        print("from IK")
-        print(res)
+        # print("from IK")
+        # print(res)
 
         return res
