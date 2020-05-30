@@ -42,7 +42,6 @@ class SimpleTGGroup(object):
 
         action_high = np.array([action_limit] * 12)
 
-
         # set the action bound
         if init_lg_param is None:
             print('Using default parameters for TG')
@@ -56,10 +55,6 @@ class SimpleTGGroup(object):
 
         self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
 
-
-
-
-
         assert init_lg_param.size is 1 + 9 * 4
 
         self._time = 0
@@ -67,16 +62,16 @@ class SimpleTGGroup(object):
         self._f_tg = self.unpack_params(init_lg_param)
 
         fl_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 0),
-                         upstream_params=self.unpack_params(init_lg_param))
+                         upstream_params=self.unpack_params(init_lg_param), leg_id=0)
 
         fr_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 1),
-                         upstream_params=self.unpack_params(init_lg_param))
+                         upstream_params=self.unpack_params(init_lg_param), leg_id=1)
 
         rl_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 2),
-                         upstream_params=self.unpack_params(init_lg_param))
+                         upstream_params=self.unpack_params(init_lg_param), leg_id=2)
 
         rr_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 3),
-                         upstream_params=self.unpack_params(init_lg_param))
+                         upstream_params=self.unpack_params(init_lg_param), leg_id=3)
 
         self._tg = [fl_tg, fr_tg, rl_tg, rr_tg]
 
@@ -96,7 +91,7 @@ class SimpleTGGroup(object):
 
     def get_default_bound(self):
         f_tg = 1.5
-        indie = np.array([np.pi/4.0, 0.05, np.pi/4.0, 0.3, 0.1, 0.1, 0.5, np.pi/4.0, 0.2])
+        indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.1, 0.5, np.pi / 4.0, 0.2])
         res = np.concatenate([f_tg, indie])
         for leg_num in range(1, 4):
             res = np.concatenate([res, indie])
