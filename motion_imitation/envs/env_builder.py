@@ -131,7 +131,7 @@ def build_other_env(motion_files, num_parallel_envs, mode,
 
     env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
                                                                          trajectory_generator=simple_TG_group.SimpleTGGroup(
-                                                                             action_limit=0.2,
+                                                                             action_limit=0.5,
                                                                              init_lg_param=None))
 
     if mode == "test":

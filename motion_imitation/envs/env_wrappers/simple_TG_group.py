@@ -90,9 +90,20 @@ class SimpleTGGroup(object):
         pass
 
     def get_default_params(self):
-        f_tg = np.array([2])
+        f_tg = np.array([1])
         gap = np.pi / 2.0
-        indie = np.array([np.pi / 4, 0.07, 0, 0, 0, -0.30, 0.5, 0, 0.3])
+
+        # self._alpha_tg = params[0]
+        # self._Ae = params[1]
+        # self._Cs = params[2]
+        # self._theta = params[3]
+        # self._z = params[4]
+        # self._h_tg = params[5]
+        # self._k_sle = params[6]
+        # self._delta_phi = params[7]
+        # self._beta = params[8]
+
+        indie = np.array([np.pi / 16, 0.05, 0, 0, 0, -0.25, 0.8, 0, 0.3])
         res = np.concatenate([f_tg, indie])
         for leg_num in range(1, 4):
             indie[7] += gap
@@ -102,7 +113,9 @@ class SimpleTGGroup(object):
 
     def get_default_bound(self):
         # f_tg = np.array([1.5])
-        indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
+        # indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
+
+        indie = np.array([np.pi/16.0, 0.05, 0.1, 0.01, 0.01, 0.05, 0.2, np.pi / 4.0, 0.2])
         # res = np.concatenate([f_tg, indie])
         res = indie
         for leg_num in range(1, 4):

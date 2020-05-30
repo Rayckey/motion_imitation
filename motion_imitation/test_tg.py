@@ -9,13 +9,13 @@ trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=0.2, init_lg_par
 
 
 current_time = 0
-time_increment = 0.01
+time_increment = 0.1
 
 
 # copied default params
-f_tg = np.array([2])
+f_tg = np.array([1])
 gap = np.pi / 2.0
-indie = np.array([np.pi / 4, 0.07, 0, 0, 0, -0.30, 0.5, 0, 0.3])
+indie = np.array([np.pi / 8, 0.1, 0, 0, 0, -0.30, 0.8, 0, 0.3])
 res = np.concatenate([f_tg, indie])
 for leg_num in range(1, 4):
     indie[7] += gap
@@ -27,7 +27,8 @@ res = np.concatenate([ja, res[1:]])
 
 # print(res)
 
-while current_time < np.pi*3:
-    print(trajectory_generator.get_action(current_time=current_time,input_action=res))
+while current_time < np.pi*2:
+    trajectory_generator.get_action(current_time=current_time, input_action=res)
+    # print()
     current_time += time_increment
 # trajectory_generator.get_action(current_time=current_time,input_action=res)

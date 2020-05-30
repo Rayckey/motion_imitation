@@ -69,6 +69,9 @@ class SimpleTG(object):
 
         self.set_leg_ID(leg_id)
 
+
+        self._leg_id = leg_id
+
     def reset(self):
         pass
 
@@ -124,11 +127,17 @@ class SimpleTG(object):
 
     def get_IK(self, tar):
         x, y, z = tar
+
         l2 = np.sqrt(y * y + z * z)
         l1 = self._l_hip
 
         l_upper = self._l_upper
         l_lower = self._l_lower
+
+
+        if abs(l1/l2) > 1:
+            print(l1)
+            print(l2)
 
         phi1 = np.arcsin(l1 / l2)
         phi2 = np.arctan2(-z, -y)
@@ -169,12 +178,12 @@ class SimpleTG(object):
         tar = self._genertate_trajectory(alpha_tg=self._alpha_tg, Ae=self._Ae, Cs=self._Cs, t_p=self._t_p,
                                          h_leg=h_leg, theta=self._theta, z=self._z)
 
-        # print('tar')
-        # print(tar)
+        # if self._leg_id == 1:
+        #     print('tar')
+        #     print(tar)
 
         # get that Ik in here
         res = self.get_IK(tar=tar)
-
 
         # account for motor direction
         res[0] *= self._gut_direction
