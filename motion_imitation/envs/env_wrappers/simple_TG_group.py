@@ -21,7 +21,7 @@ class SimpleTGGroup(object):
             init_abduction=laikago_pose_utils.LAIKAGO_DEFAULT_ABDUCTION_ANGLE,
             init_hip=laikago_pose_utils.LAIKAGO_DEFAULT_HIP_ANGLE,
             init_knee=laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE,
-            action_limit=0.5,
+            action_limit=0.2,
     ):
         """Initializes the controller."""
         self._pose = np.array(
@@ -42,6 +42,12 @@ class SimpleTGGroup(object):
 
         action_high = np.array([action_limit] * 12)
 
+
+
+        # action_high = np.zeros([12])
+        # action_high += action_limit
+
+
         # set the action bound
         if init_lg_param is None:
             print('Using default parameters for TG')
@@ -52,6 +58,8 @@ class SimpleTGGroup(object):
 
         action_low = np.concatenate([-action_high, lg_param_low])
         action_high = np.concatenate([action_high, lg_param_high])
+
+        print(action_high)
 
         self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
 

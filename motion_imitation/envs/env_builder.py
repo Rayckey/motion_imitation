@@ -34,7 +34,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
 
   curriculum_episode_length_start = 20
   curriculum_episode_length_end = 600
-  
+
   sim_params = locomotion_gym_config.SimulationParameters()
   sim_params.enable_rendering = enable_rendering
 
@@ -78,3 +78,68 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
                                                   curriculum_steps=30000000,
                                                   num_parallel_envs=num_parallel_envs)
   return env
+
+
+def build_other_env(motion_files, num_parallel_envs, mode,
+                        enable_randomizer, enable_rendering):
+    assert len(motion_files) > 0
+
+    curriculum_episode_length_start = 20
+    curriculum_episode_length_end = 600
+
+    sim_params = locomotion_gym_config.SimulationParameters()
+    sim_params.enable_rendering = enable_rendering
+
+    gym_config = locomotion_gym_config.LocomotionGymConfig(simulation_parameters=sim_params)
+
+    robot_class = laikago.Laikago
+
+    # sensors = [
+    #     sensor_wrappers.HistoricSensorWrapper(
+    #         wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=3),
+    #     sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(), num_history=3),
+    #     sensor_wrappers.HistoricSensorWrapper(
+    #         wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
+    # ]
+
+    sensors = [
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=3),
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(), num_history=3),
+        sensor_wrappers.HistoricSensorWrapper(
+            wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=3),
+        sensor_wrappers.HistoricSensorWrapper(
+            wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
+    ]
+
+    task = imitation_task.ImitationTask(ref_motion_filenames=motion_files,
+                                        enable_cycle_sync=True,
+                                        tar_frame_steps=[1, 2, 10, 30],
+                                        ref_state_init_prob=0.9,
+                                        warmup_time=0.25)
+
+    randomizers = []
+    if enable_randomizer:
+        randomizer = controllable_env_randomizer_from_config.ControllableEnvRandomizerFromConfig(verbose=False)
+        randomizers.append(randomizer)
+
+    env = locomotion_gym_env.LocomotionGymEnv(gym_config=gym_config, robot_class=robot_class,
+                                              env_randomizers=randomizers, robot_sensors=sensors, task=task)
+
+    env = observation_dictionary_to_array_wrapper.ObservationDictionaryToArrayWrapper(env)
+    # env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
+    #                                                                      trajectory_generator=simple_openloop.LaikagoPoseOffsetGenerator(action_limit=laikago.UPPER_BOUND))
+
+    env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
+                                                                         trajectory_generator=simple_TG_group.SimpleTGGroup(
+                                                                             action_limit=0.2,
+                                                                             init_lg_param=None))
+
+    if mode == "test":
+        curriculum_episode_length_start = curriculum_episode_length_end
+
+    env = imitation_wrapper_env.ImitationWrapperEnv(env,
+                                                    episode_length_start=curriculum_episode_length_start,
+                                                    episode_length_end=curriculum_episode_length_end,
+                                                    curriculum_steps=30000000,
+                                                    num_parallel_envs=num_parallel_envs)
+    return env

@@ -36,6 +36,9 @@ from stable_baselines.ppo1 import pposgd_simple
 from learning.imitation_runners import traj_segment_generator
 
 
+import pdb
+
+
 def add_vtarg_and_adv(seg, gamma, lam):
   """
   Compute target value using TD(lambda) estimator, and advantage with GAE(lambda)
@@ -218,7 +221,7 @@ class PPOImitation(pposgd_simple.PPO1):
                                               [self.summary, tf_util.flatgrad(total_loss, self.params)] + losses)
           self.compute_losses = tf_util.function([obs_ph, old_pi.obs_ph, action_ph, atarg, ret, lrmult],
                                                  losses)
-
+      # pdb.set_trace()
       return
 
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="PPO1",
@@ -237,6 +240,8 @@ class PPOImitation(pposgd_simple.PPO1):
             with self.sess.as_default():
                 self.adam.sync()
                 callback.on_training_start(locals(), globals())
+
+                # pdb.set_trace()
 
                 # Prepare for rollouts
                 seg_gen = traj_segment_generator(self.policy_pi, self.env, self.timesteps_per_actorbatch,

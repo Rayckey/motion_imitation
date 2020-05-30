@@ -5,7 +5,7 @@ from robots import laikago
 
 import numpy as np
 
-trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=laikago.UPPER_BOUND , init_lg_param=None)
+trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=0.2, init_lg_param=None)
 
 
 current_time = 0
@@ -28,6 +28,6 @@ res = np.concatenate([ja, res])
 # print(res)
 
 while current_time < np.pi*3:
-    print(trajectory_generator.get_action(current_time=current_time,input_action=res))
+    # print(trajectory_generator.get_action(current_time=current_time,input_action=res))
     current_time += time_increment
 # trajectory_generator.get_action(current_time=current_time,input_action=res)
