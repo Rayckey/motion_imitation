@@ -139,7 +139,7 @@ class SimpleTGGroup(object):
         tg_pose = np.zeros([num_joint])
 
         # retrieve from TG
-        input_param = input_action[num_joint:]
+        input_param = np.concatenate([ np.array([self._f_tg] , input_action[num_joint:])])
 
         for leg_num in range(len(self._tg)):
             self._tg[leg_num].unpack_params(self.unpack_params(params=input_param, key=leg_num))
