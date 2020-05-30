@@ -27,18 +27,18 @@ class SimpleTGGroup(object):
         self._pose = np.array(
             attr.astuple(
                 laikago_pose_utils.LaikagoPose(
-                    abduction_angle_0=init_abduction,
-                    hip_angle_0=init_hip,
-                    knee_angle_0=init_knee,
-                    abduction_angle_1=init_abduction,
-                    hip_angle_1=init_hip,
-                    knee_angle_1=init_knee,
-                    abduction_angle_2=init_abduction,
-                    hip_angle_2=init_hip,
-                    knee_angle_2=init_knee,
-                    abduction_angle_3=init_abduction,
-                    hip_angle_3=init_hip,
-                    knee_angle_3=init_knee)))
+                    abduction_angle_0=0,
+                    hip_angle_0=0,
+                    knee_angle_0=0,
+                    abduction_angle_1=0,
+                    hip_angle_1=0,
+                    knee_angle_1=0,
+                    abduction_angle_2=0,
+                    hip_angle_2=0,
+                    knee_angle_2=0,
+                    abduction_angle_3=0,
+                    hip_angle_3=0,
+                    knee_angle_3=0)))
 
         action_high = np.array([action_limit] * 12)
 

@@ -22,7 +22,7 @@ from __future__ import print_function
 import attr
 from gym import spaces
 import numpy as np
-
+from robots import laikago_pose_utils
 
 class SimpleTG(object):
     """A trajectory generator that return constant motor angles."""
@@ -64,6 +64,9 @@ class SimpleTG(object):
 
         self.set_leg_ID(leg_id)
 
+        # for matching the URDF direction
+        self._gut_direction = 1
+
     def reset(self):
         pass
 
@@ -71,6 +74,8 @@ class SimpleTG(object):
 
         if id == 0 or id == 2:
             self._l_hip *= -1
+        else:
+            self._gut_direction = -1
 
     def _update_phi_leg(self, phi_t, phi_diff):
         phi_leg = np.mod(phi_t + phi_diff, 2.0 * np.pi)
@@ -152,5 +157,14 @@ class SimpleTG(object):
 
         # get that Ik in here
         res = self.get_IK(tar=tar)
+
+        # account for motor direction
+        res[0] *= self._gut_direction
+        res[1] *= -1
+        res[2] *= -1
+
+        # account for motor offset
+        res[1] += laikago_pose_utils.LAIKAGO_DEFAULT_HIP_ANGLE
+        res[2] += laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE
 
         return res
