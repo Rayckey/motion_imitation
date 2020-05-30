@@ -26,7 +26,7 @@ from envs.sensors import sensor_wrappers
 from envs.sensors import robot_sensors
 from envs.utilities import controllable_env_randomizer_from_config
 from robots import laikago
-
+print('Imports okay from env_builder')
 
 def build_imitation_env(motion_files, num_parallel_envs, mode,
                         enable_randomizer, enable_rendering):
