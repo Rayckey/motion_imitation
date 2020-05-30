@@ -10,7 +10,7 @@ import numpy as np
 
 from robots import laikago_pose_utils
 
-from simple_TG import SimpleTG
+from envs.env_wrappers import simple_TG
 
 
 class SimpleTGGroup(object):
@@ -61,16 +61,16 @@ class SimpleTGGroup(object):
         self._phi_t = 0
         self._f_tg = self.unpack_params(init_lg_param)
 
-        fl_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 0),
+        fl_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 0),
                          upstream_params=self.unpack_params(init_lg_param), leg_id=0)
 
-        fr_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 1),
+        fr_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 1),
                          upstream_params=self.unpack_params(init_lg_param), leg_id=1)
 
-        rl_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 2),
+        rl_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 2),
                          upstream_params=self.unpack_params(init_lg_param), leg_id=2)
 
-        rr_tg = SimpleTG(init_params=self.unpack_params(init_lg_param, 3),
+        rr_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 3),
                          upstream_params=self.unpack_params(init_lg_param), leg_id=3)
 
         self._tg = [fl_tg, fr_tg, rl_tg, rr_tg]
@@ -79,9 +79,9 @@ class SimpleTGGroup(object):
         pass
 
     def get_default_params(self):
-        f_tg = 2
+        f_tg = np.array([2])
         gap = np.pi / 2.0
-        indie = np.array([np.pi / 4, 0.07, 0, 0, 0, -0.35, 0.5, 0, 0.3])
+        indie = np.array([np.pi / 4, 0.07, 0, 0, 0, -0.30, 0.5, 0, 0.3])
         res = np.concatenate([f_tg, indie])
         for leg_num in range(1, 4):
             indie[7] += gap
@@ -90,8 +90,8 @@ class SimpleTGGroup(object):
         return res
 
     def get_default_bound(self):
-        f_tg = 1.5
-        indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.1, 0.5, np.pi / 4.0, 0.2])
+        f_tg = np.array([1.5])
+        indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
         res = np.concatenate([f_tg, indie])
         for leg_num in range(1, 4):
             res = np.concatenate([res, indie])
@@ -127,12 +127,20 @@ class SimpleTGGroup(object):
         num_joint = 12
         num_joint_in_leg = 3
 
-        tg_pose = np.array([num_joint])
+        tg_pose = np.zeros([num_joint])
 
         # retrieve from TG
         input_param = input_action[num_joint:]
+
         for leg_num in range(len(self._tg)):
             self._tg[leg_num].unpack_params(self.unpack_params(params=input_param, key=leg_num))
+
+            # print(leg_num * num_joint_in_leg)
+            #
+            # print((leg_num + 1) * num_joint_in_leg)
+            #
+            # print(self._tg[leg_num].get_trajectory(self._phi_t))
+
             tg_pose[leg_num * num_joint_in_leg: (leg_num + 1) * num_joint_in_leg] = \
                 self._tg[leg_num].get_trajectory(self._phi_t)
 

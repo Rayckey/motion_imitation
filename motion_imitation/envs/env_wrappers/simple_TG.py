@@ -54,18 +54,20 @@ class SimpleTG(object):
         self._f_tg = upstream_params[0]
 
         # from upstream untunable
-        self._phi_t = upstream_params[1]
-        self._phi_leg = upstream_params[2]
-        self._t_p = upstream_params[3]
+        self._phi_t = 0
+        self._phi_leg = 0
+        self._t_p = 0
 
-        self._l_hip = 0.025
+        self._l_hip = 0.054
         self._l_upper = 0.25
         self._l_lower = 0.25
 
-        self.set_leg_ID(leg_id)
+
 
         # for matching the URDF direction
         self._gut_direction = 1
+
+        self.set_leg_ID(leg_id)
 
     def reset(self):
         pass
@@ -101,9 +103,13 @@ class SimpleTG(object):
 
     def _genertate_trajectory(self, alpha_tg, Ae, Cs, t_p, h_leg, theta, z):
         swing = Cs + alpha_tg * np.cos(t_p)
+
+        # print('Swing')
+        # print(np.cos(t_p))
+
         y = h_leg + Ae * np.sin(t_p) + theta * np.cos(t_p)
         x = - np.tan(swing) * y
-        return x, y, z
+        return x[0], y[0], z
 
     def unpack_params(self, params):
         self._alpha_tg = params[0]
@@ -127,11 +133,16 @@ class SimpleTG(object):
         phi1 = np.arcsin(l1 / l2)
         phi2 = np.arctan2(-z, -y)
 
-        theta = np.pi / 2.0 - phi1 + phi2
-
+        # print(phi1)
+        # print(phi2)
+        theta = phi1 + phi2
+        # print(theta)
         tip_2_hip_extent = -(y * np.cos(theta) + z * np.sin(theta))
 
         tip_2_hip_x = x
+
+        print(tip_2_hip_x)
+        print(tip_2_hip_extent)
 
         c = np.sqrt(x * x + tip_2_hip_extent * tip_2_hip_extent)
 
@@ -152,11 +163,18 @@ class SimpleTG(object):
         h_leg = self._assemble_leg_height(phi_leg=self._phi_leg, beta=self._beta, k_sle=self._k_sle, t_p=self._t_p,
                                           Ae=self._Ae)
 
+        # print('h_leg')
+        # print(h_leg)
+
         tar = self._genertate_trajectory(alpha_tg=self._alpha_tg, Ae=self._Ae, Cs=self._Cs, t_p=self._t_p,
                                          h_leg=h_leg, theta=self._theta, z=self._z)
 
+        # print('tar')
+        # print(tar)
+
         # get that Ik in here
         res = self.get_IK(tar=tar)
+
 
         # account for motor direction
         res[0] *= self._gut_direction
@@ -164,7 +182,11 @@ class SimpleTG(object):
         res[2] *= -1
 
         # account for motor offset
-        res[1] += laikago_pose_utils.LAIKAGO_DEFAULT_HIP_ANGLE
-        res[2] += laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE
+        res[1] -= laikago_pose_utils.LAIKAGO_DEFAULT_HIP_ANGLE
+        res[2] -= laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE
+
+
+        print("from IK")
+        print(res)
 
         return res
