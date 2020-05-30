@@ -19,6 +19,7 @@ from envs.env_wrappers import imitation_wrapper_env
 from envs.env_wrappers import observation_dictionary_to_array_wrapper
 from envs.env_wrappers import trajectory_generator_wrapper_env
 from envs.env_wrappers import simple_openloop
+from envs.env_wrappers import simple_TG_group
 from envs.env_wrappers import imitation_task
 from envs.sensors import environment_sensors
 from envs.sensors import sensor_wrappers
@@ -66,7 +67,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
   #                                                                      trajectory_generator=simple_openloop.LaikagoPoseOffsetGenerator(action_limit=laikago.UPPER_BOUND))
 
   env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
-                                                                       trajectory_generator=simple_openloop.LaikagoPoseOffsetGenerator(action_limit=laikago.UPPER_BOUND))
+                                                                       trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=laikago.UPPER_BOUND , params_limit=None))
 
   if mode == "test":
       curriculum_episode_length_start = curriculum_episode_length_end
