@@ -63,6 +63,9 @@ class SimpleTGGroup(object):
 
         self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
 
+        print("Action space shape is ")
+        print(self.action_space.shape)
+
         assert init_lg_param.size is 1 + 9 * 4
 
         self._time = 0
@@ -139,7 +142,8 @@ class SimpleTGGroup(object):
         tg_pose = np.zeros([num_joint])
 
         # retrieve from TG
-        input_param = np.concatenate([ np.array([self._f_tg] , input_action[num_joint:])])
+        # print(self._f_tg)
+        input_param = np.concatenate([self._f_tg, input_action[num_joint:]])
 
         for leg_num in range(len(self._tg)):
             self._tg[leg_num].unpack_params(self.unpack_params(params=input_param, key=leg_num))

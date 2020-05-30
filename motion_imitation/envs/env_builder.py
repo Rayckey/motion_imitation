@@ -103,7 +103,7 @@ def build_other_env(motion_files, num_parallel_envs, mode,
     # ]
 
     sensors = [
-        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=3),
+        # sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=3)
         sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(), num_history=3),
         sensor_wrappers.HistoricSensorWrapper(
             wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=3),

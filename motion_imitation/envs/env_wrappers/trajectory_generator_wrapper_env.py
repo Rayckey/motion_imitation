@@ -49,9 +49,14 @@ class TrajectoryGeneratorWrapperEnv(object):
     # The trajectory generator can subsume the action/observation space.
     if hasattr(trajectory_generator, 'observation_space'):
       self.observation_space = self._trajectory_generator.observation_space
+      print('observation_space is this big')
+      print(self.observation_space.shape)
 
     if hasattr(trajectory_generator, 'action_space'):
       self.action_space = self._trajectory_generator.action_space
+      print('action space is this big')
+      print(self.action_space.shape)
+
 
   def __getattr__(self, attr):
     return getattr(self._gym_env, attr)

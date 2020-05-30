@@ -390,6 +390,10 @@ class LocomotionGymEnv(gym.Env):
       sensors_dict[s.get_name()] = s.get_observation()
 
     observations = collections.OrderedDict(sorted(list(sensors_dict.items())))
+
+    # print('Robot')
+    # print('Robot')
+
     return observations
 
   def set_time_step(self, num_action_repeat, sim_step=0.001):

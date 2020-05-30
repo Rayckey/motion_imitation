@@ -135,6 +135,9 @@ class ImitationWrapperEnv(object):
 
     obs_space = gym.spaces.Box(low, high)
 
+    print('observation_space is this big')
+    print(obs_space.shape)
+
     return obs_space
 
   def _enable_curriculum(self):

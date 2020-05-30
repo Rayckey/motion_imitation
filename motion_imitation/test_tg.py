@@ -23,7 +23,7 @@ for leg_num in range(1, 4):
 
 # insert 0 joint angles
 ja = np.zeros([12])
-res = np.concatenate([ja, res])
+res = np.concatenate([ja, res[1:]])
 
 # print(res)
 
