@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from envs import locomotion_gym_env
+import locomotion_gym_env
 from envs import locomotion_gym_config
 from envs.env_wrappers import imitation_wrapper_env
 from envs.env_wrappers import observation_dictionary_to_array_wrapper
