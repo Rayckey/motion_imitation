@@ -241,11 +241,14 @@ class PPOImitation(pposgd_simple.PPO1):
                 self.adam.sync()
                 callback.on_training_start(locals(), globals())
 
-                # pdb.set_trace()
+
 
                 # Prepare for rollouts
                 seg_gen = traj_segment_generator(self.policy_pi, self.env, self.timesteps_per_actorbatch,
                                                  callback=callback)
+
+                # pdb.set_trace()
+
 
                 episodes_so_far = 0
                 timesteps_so_far = 0

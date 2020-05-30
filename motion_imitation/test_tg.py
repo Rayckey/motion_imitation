@@ -28,6 +28,6 @@ res = np.concatenate([ja, res])
 # print(res)
 
 while current_time < np.pi*3:
-    # print(trajectory_generator.get_action(current_time=current_time,input_action=res))
+    print(trajectory_generator.get_action(current_time=current_time,input_action=res))
     current_time += time_increment
 # trajectory_generator.get_action(current_time=current_time,input_action=res)

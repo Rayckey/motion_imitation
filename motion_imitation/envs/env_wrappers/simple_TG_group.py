@@ -53,13 +53,13 @@ class SimpleTGGroup(object):
             print('Using default parameters for TG')
             init_lg_param = self.get_default_params()
 
-        lg_param_high = init_lg_param + self.get_default_bound()
-        lg_param_low = init_lg_param - self.get_default_bound()
+        lg_param_high = init_lg_param[1:] + self.get_default_bound()
+        lg_param_low = init_lg_param[1:] - self.get_default_bound()
 
         action_low = np.concatenate([-action_high, lg_param_low])
         action_high = np.concatenate([action_high, lg_param_high])
 
-        print(action_high)
+        # print(action_high)
 
         self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
 
@@ -98,9 +98,10 @@ class SimpleTGGroup(object):
         return res
 
     def get_default_bound(self):
-        f_tg = np.array([1.5])
+        # f_tg = np.array([1.5])
         indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
-        res = np.concatenate([f_tg, indie])
+        # res = np.concatenate([f_tg, indie])
+        res = indie
         for leg_num in range(1, 4):
             res = np.concatenate([res, indie])
 
@@ -157,7 +158,8 @@ class SimpleTGGroup(object):
     def get_observation(self, input_observation):
         """Get the trajectory generator's observation."""
 
-        return np.concatenate([input_observation, np.array([self._phi_t])])
+        # return np.concatenate([input_observation, np.array([self._phi_t])])
+        return input_observation
 
     def unpack_params(self, params, key=-1):
 
