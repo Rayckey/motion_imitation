@@ -27,8 +27,11 @@ from pybullet_utils import transformations
 
 
 def imitation_terminal_condition(env,
+                                 goal = np.array([0,0,0.48]),
+                                 dist_to_goal = 5,
                                  dist_fail_threshold=1.0,
-                                 rot_fail_threshold=0.5 * np.pi):
+                                 rot_fail_threshold=0.5 * np.pi,
+                                 ):
   """A terminal condition for motion imitation task.
 
   Args:
@@ -37,7 +40,7 @@ def imitation_terminal_condition(env,
       to drift from the reference motion before the episode terminates.
     rot_fail_threshold: Max rotational difference between simulated character's
       root and the reference motion's root before the episode terminates.
-
+    dist_to_goal: acceptable euclidean distance to goal to be considered complete
   Returns:
     A boolean indicating if episode is over.
   """
@@ -80,9 +83,18 @@ def imitation_terminal_condition(env,
       root_rot_diff_angle)
   root_rot_fail = (np.abs(root_rot_diff_angle) > rot_fail_threshold)
 
+  #check if at goal by distance to goal
+  at_goal = np.linalg.norm(root_pos_sim-goal) < dist_to_goal
+
+  #define path here (ex parabola +/- 1)
+  [x_pos,y_pos,z_pos] = root_pos_sim
+  out_of_path = y_pos < (-0.12*x_pos**2+1.20*x_pos)-1 or y_pos > (-0.12*x_pos**2+1.20*x_pos)+1
+
   done = motion_over \
       or contact_fall \
       or root_pos_fail \
-      or root_rot_fail
+      or root_rot_fail \
+      or at_goal \
+      or out_of_path
 
   return done

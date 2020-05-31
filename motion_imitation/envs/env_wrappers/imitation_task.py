@@ -58,7 +58,8 @@ class ImitationTask(object):
                  root_velocity_err_scale=2,
                  perturb_init_state_prob=0.0,
                  tar_obs_noise=None,
-                 draw_ref_model_alpha=0.5):
+                 draw_ref_model_alpha=0.5,
+                 goal=np.array([10, 0, 0.48])):
         """Initializes the task.
 
     Args:
@@ -165,7 +166,7 @@ class ImitationTask(object):
         self._r_time = 0
         self._first_time = None
         #########################################
-
+        self._goal = goal
         return
 
     def __call__(self, env):
@@ -176,7 +177,7 @@ class ImitationTask(object):
         self._env = env
         self._last_base_position = self._get_sim_base_position()
         self._episode_start_time_offset = 0.0
-
+        self._last_reward = 0.0
         if (self._ref_motions is None or self._env.hard_reset):
             self._ref_motions = self._load_ref_motions(self._ref_motion_filenames)
             self._active_motion_id = self._sample_ref_motion()
@@ -218,8 +219,7 @@ class ImitationTask(object):
     def done(self, env):
         """Checks if the episode is over."""
         del env
-        done = self._terminal_condition(self._env)
-
+        done = self._terminal_condition(self._env, goal = self._goal)
         return done
 
     def get_num_motions(self):
@@ -349,17 +349,18 @@ class ImitationTask(object):
     def reward(self, env):
         """Get the reward without side effects."""
         del env
+        #
+        # # pose_reward = self._calc_reward_pose()
+        # # velocity_reward = self._calc_reward_velocity()
+        # # end_effector_reward = self._calc_reward_end_effector()
+        # root_pose_reward = self._calc_reward_root_pose()
+        # root_velocity_reward = self._calc_reward_root_velocity()
+        #
+        #
+        # reward = self._root_pose_weight * root_pose_reward \
+        #          + self._root_velocity_weight * root_velocity_reward
 
-        # pose_reward = self._calc_reward_pose()
-        # velocity_reward = self._calc_reward_velocity()
-        # end_effector_reward = self._calc_reward_end_effector()
-        root_pose_reward = self._calc_reward_root_pose()
-        root_velocity_reward = self._calc_reward_root_velocity()
-
-
-        reward = self._root_pose_weight * root_pose_reward \
-                 + self._root_velocity_weight * root_velocity_reward
-        return reward * self._weight
+        return self._calc_goal_reward() * self._weight
 
     def _calc_reward_pose(self):
         """Get the pose reward."""
@@ -546,6 +547,12 @@ class ImitationTask(object):
                                       root_velocity_err)
 
         return root_velocity_reward
+
+    def _calc_goal_reward(self):
+        root_pos_sim = self._get_sim_base_position()
+        goaldist = np.linalg.norm(root_pos_sim-self._goal)
+        prevdist = np.linalg.norm(self._last_base_position-self._goal)
+        return prevdist-goaldist
 
     def _load_ref_motions(self, filenames):
         """Load reference motions.
