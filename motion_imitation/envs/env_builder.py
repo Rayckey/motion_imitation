@@ -43,9 +43,9 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
   robot_class = laikago.Laikago
 
   sensors = [
-      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=3),
-      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=3),
-      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=3)
+      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=1),
+      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=1),
+      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=1)
   ]
 
   task = imitation_task.ImitationTask(ref_motion_filenames=motion_files,
@@ -69,14 +69,14 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
   env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
                                                                        trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=laikago.UPPER_BOUND , init_lg_param=None))
 
-  if mode == "test":
-      curriculum_episode_length_start = curriculum_episode_length_end
-
-  env = imitation_wrapper_env.ImitationWrapperEnv(env,
-                                                  episode_length_start=curriculum_episode_length_start,
-                                                  episode_length_end=curriculum_episode_length_end,
-                                                  curriculum_steps=30000000,
-                                                  num_parallel_envs=num_parallel_envs)
+  # if mode == "test":
+  #     curriculum_episode_length_start = curriculum_episode_length_end
+  #
+  # env = imitation_wrapper_env.ImitationWrapperEnv(env,
+  #                                                 episode_length_start=curriculum_episode_length_start,
+  #                                                 episode_length_end=curriculum_episode_length_end,
+  #                                                 curriculum_steps=30000000,
+  #                                                 num_parallel_envs=num_parallel_envs)
   return env
 
 

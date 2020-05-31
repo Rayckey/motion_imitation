@@ -338,8 +338,8 @@ class BasePositionSensor(sensor.BoxSpaceSensor):
     super(BasePositionSensor, self).__init__(
         name=name,
         shape=(3,),  # x, y, z
-        lower_bound=lower_bound,
-        upper_bound=upper_bound,
+        lower_bound=np.array([lower_bound] * 3),
+        upper_bound=np.array([upper_bound] * 3),
         dtype=dtype)
 
   def _get_observation(self) -> _ARRAY:
