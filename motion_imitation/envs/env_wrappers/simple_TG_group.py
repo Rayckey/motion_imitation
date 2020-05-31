@@ -28,10 +28,10 @@ class SimpleTGGroup(object):
             attr.astuple(
                 laikago_pose_utils.LaikagoPose(
                     abduction_angle_0=0,
-                    hip_angle_0=0,
-                    knee_angle_0=0,
+                    hip_angle_0= 0,
+                    knee_angle_0= 0,
                     abduction_angle_1=0,
-                    hip_angle_1=0,
+                    hip_angle_1= 0,
                     knee_angle_1=0,
                     abduction_angle_2=0,
                     hip_angle_2=0,
@@ -72,19 +72,21 @@ class SimpleTGGroup(object):
         self._phi_t = 0
         self._f_tg = self.unpack_params(init_lg_param)
 
-        fl_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 0),
+
+
+        fr_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 0),
                          upstream_params=self.unpack_params(init_lg_param), leg_id=0)
 
-        fr_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 1),
-                         upstream_params=self.unpack_params(init_lg_param), leg_id=1)
+        fl_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 1),
+                         upstream_params=self.unpack_params(init_lg_param), leg_id=0)
 
-        rl_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 2),
-                         upstream_params=self.unpack_params(init_lg_param), leg_id=2)
+        rr_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 2),
+                         upstream_params=self.unpack_params(init_lg_param), leg_id=0)
 
-        rr_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 3),
-                         upstream_params=self.unpack_params(init_lg_param), leg_id=3)
+        rl_tg = simple_TG.SimpleTG(init_params=self.unpack_params(init_lg_param, 3),
+                         upstream_params=self.unpack_params(init_lg_param), leg_id=0)
 
-        self._tg = [fl_tg, fr_tg, rl_tg, rr_tg]
+        self._tg = [fr_tg, fl_tg,  rr_tg ,rl_tg]
 
     def reset(self):
         pass
@@ -103,7 +105,7 @@ class SimpleTGGroup(object):
         # self._delta_phi = params[7]
         # self._beta = params[8]
 
-        indie = np.array([np.pi / 16, 0.05, 0, 0, 0, -0.25, 0.8, 0, 0.3])
+        indie = np.array([np.pi /10.0, 0.05, 0, 0, 0, -0.275, 0.8, 0, 0.3])
         res = np.concatenate([f_tg, indie])
         for leg_num in range(1, 4):
             indie[7] += gap
@@ -115,7 +117,7 @@ class SimpleTGGroup(object):
         # f_tg = np.array([1.5])
         # indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
 
-        indie = np.array([np.pi/16.0, 0.05, 0.1, 0.01, 0.01, 0.05, 0.2, np.pi / 4.0, 0.2])
+        indie = np.array([np.pi/16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
         # res = np.concatenate([f_tg, indie])
         res = indie
         for leg_num in range(1, 4):
@@ -170,7 +172,13 @@ class SimpleTGGroup(object):
             tg_pose[leg_num * num_joint_in_leg: (leg_num + 1) * num_joint_in_leg] = \
                 self._tg[leg_num].get_trajectory(self._phi_t)
 
+        # print("input is")
+        # print(input_action[:num_joint])
+        # print("output is")
+        # print(tg_pose)
+
         return self._pose + input_action[:num_joint] + tg_pose
+        # return self._pose
 
     def get_observation(self, input_observation):
         """Get the trajectory generator's observation."""

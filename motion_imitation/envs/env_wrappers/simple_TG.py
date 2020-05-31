@@ -78,9 +78,9 @@ class SimpleTG(object):
     def set_leg_ID(self, id):
 
         if id == 0 or id == 2:
-            self._l_hip *= -1
-        else:
             self._gut_direction = -1
+        else:
+            self._l_hip *= -1
 
     def _update_phi_leg(self, phi_t, phi_diff):
         phi_leg = np.mod(phi_t + phi_diff, 2.0 * np.pi)
@@ -157,7 +157,7 @@ class SimpleTG(object):
 
         inner_upper = np.arccos((c * c + l_upper * l_upper - l_lower * l_lower) / (2.0 * c * l_upper))
 
-        tip_2_hip_swing = np.arctan2(x, tip_2_hip_extent)
+        tip_2_hip_swing = -np.arctan2(x, tip_2_hip_extent)
 
         inner_lower = np.arccos((l_upper * l_upper + l_lower * l_lower - c * c) / (2.0 * l_lower * l_upper))
 
@@ -178,24 +178,29 @@ class SimpleTG(object):
         tar = self._genertate_trajectory(alpha_tg=self._alpha_tg, Ae=self._Ae, Cs=self._Cs, t_p=self._t_p,
                                          h_leg=h_leg, theta=self._theta, z=self._z)
 
-        # if self._leg_id == 1:
-        #     print('tar')
-        #     print(tar)
+        # if self._leg_id == 0:
+            # print("tar is ")
+            # print(tar)
 
         # get that Ik in here
         res = self.get_IK(tar=tar)
 
+        # if self._leg_id == 0:
+            # print("from IK")
+            # print(res)
+
         # account for motor direction
-        res[0] *= self._gut_direction
+        # res[0] *= self._gut_direction
+        res[0] *= 0
         res[1] *= -1
         res[2] *= -1
 
         # account for motor offset
-        res[1] -= laikago_pose_utils.LAIKAGO_DEFAULT_HIP_ANGLE
-        res[2] -= laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE
+        # res[1] -= laikago_pose_utils.LAIKAGO_DEFAULT_HIP_ANGLE
+        # res[2] -= laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE
 
 
-        # print("from IK")
-        # print(res)
+
+
 
         return res
