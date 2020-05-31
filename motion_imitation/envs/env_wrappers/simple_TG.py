@@ -121,9 +121,9 @@ class SimpleTG(object):
         self._theta = params[3]
         self._z = params[4]
         self._h_tg = params[5]
-        self._k_sle = params[6]
-        self._delta_phi = params[7]
-        self._beta = params[8]
+        self._k_sle += params[6]
+        self._delta_phi += params[7]
+        self._beta += params[8]
 
     def get_IK(self, tar):
         x, y, z = tar

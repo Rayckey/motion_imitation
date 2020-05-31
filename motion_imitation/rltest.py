@@ -5,6 +5,8 @@ import numpy as np
 import os
 import argparse
 import gym.wrappers as wrappers
+from numpy import savetxt
+
 
 #Hyper Parameters
 class Hp():
@@ -109,6 +111,21 @@ class HPolicy():
     l = flat[self.theta_h.size:].reshape(self.theta_l.shape)
     return [h,l]
 
+  def flattenWeights(self):
+      h = np.ndarray.flatten(self.theta_h)
+      l = np.ndarray.flatten(self.theta_l)
+      return np.concatenate((h,l))
+
+  def saveWeights(self,step=0):
+    weights_path = 'weights_ars'
+    if not os.path.exists(weights_path):
+            os.makedirs(weights_path)
+    savetxt('weights_ars/weights' + str(step) + '.csv', self.flattenWeights(), delimiter=',')
+
+  def loadWeights(self,file_location='weights_ars/weights_0.csv'):
+    # save to csv file
+    weights = loadtxt(file_location, delimiter=',')
+    [self.theta_h,self.theta_l] = reshapeFromFlat(weights)
 
 # Exploring a policy in one specific direction and over one episode
 def explore(env, normalizer, policy, direction=None, delta=None):
@@ -159,6 +176,11 @@ def train(env, policy, normalizer, hp):
     # Printing the final reward of the policy after the update
     reward_evaluation = explore(env, normalizer, policy)
     print('Step:', step, 'Reward:', reward_evaluation)
+
+    #save weights
+    if step%10 is 0:
+      policy.saveWeights(step=step)
+
 
 
 # MAIN FUCTION
