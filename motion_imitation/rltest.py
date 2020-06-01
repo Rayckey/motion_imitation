@@ -14,10 +14,10 @@ class Hp():
     self.nb_steps = 1000
     self.episode_length = 1000
     self.learning_rate = 0.02
-    self.nb_directions = 8
-    self.nb_best_directions = 8
+    self.nb_directions = 16
+    self.nb_best_directions = 16
     assert self.nb_best_directions <= self.nb_directions
-    self.noise = 0.3
+    self.noise = 0.03
     self.seed = 1
     self.env_name = 'HalfCheetahBulletEnv-v0'
     self.latent_dim = 2
@@ -190,7 +190,7 @@ def train(env, policy, normalizer, hp):
 
 #test policy with weights loaded from csv
 def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
-    policy.loadWeights(weights_files)
+    policy.loadWeights(weights_file)
     reward_evaluation = explore(env, normalizer, policy)
     print('Step:', step, 'Reward:', reward_evaluation)
 # MAIN FUCTION
@@ -198,9 +198,10 @@ def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
 import envs.env_builder as env_builder
 
 # Define constants (maybe read from robot class/environment later)
+sensor_history_num = 3
 leg_pos_dim = 12
-input_dim_h = 4
-input_dim_l = 4+leg_pos_dim
+input_dim_h = 4*sensor_history_num
+input_dim_l = (4+leg_pos_dim)*sensor_history_num
 
 
 video_path = 'monitor'
@@ -213,6 +214,7 @@ np.random.seed(hp.seed)
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
 arg_parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
+arg_parser.add_argument("--mode", dest="mode", type=str, default="train")
 args = arg_parser.parse_args()
 
 
@@ -227,4 +229,8 @@ nb_inputs = env.observation_space.shape[0]
 nb_outputs = env.action_space.shape[0]
 policy = HPolicy(input_dim_h,input_dim_l, hp.latent_dim, nb_outputs)
 normalizer = Normalizer(nb_inputs)
-train(env, policy, normalizer, hp)
+
+if args.mode is "train":
+  train(env, policy, normalizer, hp)
+elif args.mode is "test":
+  test(env, policy, normalizer, 'weights_ars/weights_280.csv')

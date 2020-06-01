@@ -91,18 +91,20 @@ class SimpleTG(object):
         return
 
     def _compute_t_prime(self, phi_leg, beta):
-        if 2 * np.pi * beta > phi_leg >= 0:
+        if 2.0 * np.pi * beta > phi_leg  and phi_leg >= 0:
             t_p = phi_leg / (2.0 * beta)
+            # print(beta)
         else:
-            t_p = 2 * np.pi - (2 * np.pi - phi_leg) / (2 * (1 - beta))
+            t_p = 2.0 * np.pi - (2.0 * np.pi - phi_leg) / (2.0 * (1.0 - beta))
+            # print("stance")
         return t_p
 
-    def _assemble_leg_height(self, phi_leg, beta, k_sle, t_p, Ae):
+    def _assemble_leg_height(self, phi_leg, beta, k_sle, t_p, Ae, h_tg):
         if 2 * np.pi * beta > phi_leg >= 0:
-            h_tg = self._h_tg
+            h_leg = h_tg
         else:
-            h_tg = self._h_tg + (-k_sle * Ae * np.sin(t_p))
-        return h_tg
+            h_leg = h_tg + (-k_sle * Ae * np.sin(t_p))
+        return h_leg
 
     def _genertate_trajectory(self, alpha_tg, Ae, Cs, t_p, h_leg, theta, z):
         swing = Cs + alpha_tg * np.cos(t_p)
@@ -111,7 +113,7 @@ class SimpleTG(object):
         # print(np.cos(t_p))
 
         y = h_leg + Ae * np.sin(t_p) + theta * np.cos(t_p)
-        x = - np.tan(swing) * y
+        x =  np.tan(swing) * y
         return x[0], y[0], z
 
     def unpack_params(self, params):
@@ -166,32 +168,49 @@ class SimpleTG(object):
     def get_trajectory(self, phi_t):
         self._sync_phi_t(phi_t=phi_t)
 
+        # if self._leg_id == 0:
+        #     print('_phi_t')
+        #     print(self._phi_t)
+
         self._phi_leg = self._update_phi_leg(phi_t=self._phi_t, phi_diff=self._delta_phi)
 
-        self._t_p = self._compute_t_prime(phi_leg=self._phi_leg, beta=self._beta)
-        h_leg = self._assemble_leg_height(phi_leg=self._phi_leg, beta=self._beta, k_sle=self._k_sle, t_p=self._t_p,
-                                          Ae=self._Ae)
+        # if self._leg_id == 0:
+        #     print('_phi_leg')
+        #     print(self._phi_leg)
 
-        # print('h_leg')
-        # print(h_leg)
+        self._t_p = self._compute_t_prime(phi_leg=self._phi_leg, beta=self._beta)
+
+        # if self._leg_id == 0:
+        #     print('_t_p')
+        #     print(self._t_p)
+
+        h_leg = self._assemble_leg_height(phi_leg=self._phi_leg, beta=self._beta, k_sle=self._k_sle, t_p=self._t_p,
+                                          Ae=self._Ae, h_tg=self._h_tg)
+
+        # if self._leg_id == 0:
+        #     print('h_leg')
+        #     print(h_leg)
 
         tar = self._genertate_trajectory(alpha_tg=self._alpha_tg, Ae=self._Ae, Cs=self._Cs, t_p=self._t_p,
                                          h_leg=h_leg, theta=self._theta, z=self._z)
 
+        # print("leg_num:")
+        # print(self._leg_id)
+
         # if self._leg_id == 0:
-            # print("tar is ")
-            # print(tar)
+        #     print("tar is ")
+        #     print(tar)
 
         # get that Ik in here
         res = self.get_IK(tar=tar)
 
         # if self._leg_id == 0:
-            # print("from IK")
-            # print(res)
+        #     print("from IK")
+        #     print(res)
 
         # account for motor direction
-        # res[0] *= self._gut_direction
-        res[0] *= 0
+        res[0] *= self._gut_direction
+        # res[0] *= 0
         res[1] *= -1
         res[2] *= -1
 
