@@ -10,17 +10,24 @@ from numpy import savetxt
 
 #Hyper Parameters
 class Hp():
-  def __init__(self):
-    self.nb_steps = 1000
-    self.episode_length = 1000
-    self.learning_rate = 0.02
-    self.nb_directions = 16
-    self.nb_best_directions = 16
+  def __init__(self,
+                nb_steps = 1000,
+                episode_length = 1000,
+                learning_rate = 0.02,
+                nb_directions = 16,
+                nb_best_directions = 16,
+                noise = 0.03,
+                seed = 1,
+                latent_dim = 2):
+    self.nb_steps = nb_steps
+    self.episode_length = episode_length
+    self.learning_rate = learning_rate
+    self.nb_directions = nb_directions
+    self.nb_best_directions = nb_best_directions
     assert self.nb_best_directions <= self.nb_directions
-    self.noise = 0.03
-    self.seed = 1
-    self.env_name = 'HalfCheetahBulletEnv-v0'
-    self.latent_dim = 2
+    self.noise = noise
+    self.seed = seed
+    self.latent_dim = latent_dim
 
 
 # Normalizing the states
@@ -190,33 +197,45 @@ def train(env, policy, normalizer, hp):
 
 #test policy with weights loaded from csv
 def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
-    policy.loadWeights(weights_file)
+    policy.loadWeights(file_location=weights_file)
     reward_evaluation = explore(env, normalizer, policy)
     print('Step:', step, 'Reward:', reward_evaluation)
-# MAIN FUCTION
 
+
+# MAIN FUCTION
 import envs.env_builder as env_builder
 
 # Define constants (maybe read from robot class/environment later)
-sensor_history_num = 3
+sensor_history_num = 1
 leg_pos_dim = 12
 input_dim_h = 4*sensor_history_num
 input_dim_l = (4+leg_pos_dim)*sensor_history_num
 
-
-video_path = 'monitor'
-if not os.path.exists(video_path):
-        os.makedirs(video_path)
-
-hp = Hp()
-np.random.seed(hp.seed)
 #update this with our laikago env
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
 arg_parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
 arg_parser.add_argument("--mode", dest="mode", type=str, default="train")
+arg_parser.add_argument("--steps", dest="steps", type=int, default=1000)
+arg_parser.add_argument("--eplength", dest="eplength", type=int, default=1000)
+arg_parser.add_argument("--learnrate", dest="learnrate", type=float, default=0.02)
+arg_parser.add_argument("--ndirections", dest="ndirections", type=int, default=16)
+arg_parser.add_argument("--nbestdir", dest="nbestdir", type=int, default=16)
+arg_parser.add_argument("--noise", dest="noise", type=float, default=0.03)
+arg_parser.add_argument("--latent", dest="latent", type=int, default=2)
+arg_parser.add_argument("--weights", dest="weights", type=str, default='weights_ars/weights_0.csv')
+
 args = arg_parser.parse_args()
 
+hp = Hp(nb_steps = args.steps,
+    episode_length = args.eplength,
+    learning_rate = args.learnrate,
+    nb_directions = args.ndirections,
+    nb_best_directions = args.nbestdir,
+    noise = args.noise,
+    seed = 1,
+    latent_dim = args.latent)
+np.random.seed(hp.seed)
 
 env = env_builder.build_imitation_env(motion_files=[args.motion_file],
                                         num_parallel_envs=1,
@@ -232,5 +251,5 @@ normalizer = Normalizer(nb_inputs)
 
 if args.mode is "train":
   train(env, policy, normalizer, hp)
-elif args.mode is "test":
-  test(env, policy, normalizer, 'weights_ars/weights_280.csv')
+else:
+  test(env, policy, normalizer, args.weights)
