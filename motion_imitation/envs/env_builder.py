@@ -131,8 +131,8 @@ def build_other_env(motion_files, num_parallel_envs, mode,
 
     env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
                                                                          trajectory_generator=simple_TG_group.SimpleTGGroup(
-                                                                             action_limit=0.5,
-                                                                             init_lg_param=None))
+                                                                             action_limit=0.1,
+                                                                             init_lg_param=None, is_touting=1))
 
     if mode == "test":
         curriculum_episode_length_start = curriculum_episode_length_end
