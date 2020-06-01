@@ -14,10 +14,10 @@ class Hp():
     self.nb_steps = 1000
     self.episode_length = 1000
     self.learning_rate = 0.02
-    self.nb_directions = 16
-    self.nb_best_directions = 16
+    self.nb_directions = 8
+    self.nb_best_directions = 8
     assert self.nb_best_directions <= self.nb_directions
-    self.noise = 0.03
+    self.noise = 0.3
     self.seed = 1
     self.env_name = 'HalfCheetahBulletEnv-v0'
     self.latent_dim = 2
@@ -60,9 +60,10 @@ class HPolicy():
     self.input_size_h = input_size_h
     self.input_size_l = input_size_l
     self.latent_size = latent_size
-    self.theta_l = np.zeros((output_size, input_size_l + latent_size))
-    self.theta_h = np.zeros((latent_size + 1, input_size_h))
-    self.theta_size = self.theta_l.size + self.theta_h.size
+    self.theta_l = np.random.uniform(-1,1,size=(output_size, input_size_l + latent_size))
+    self.theta_h = np.random.uniform(-1,1,size=(latent_size + 1, input_size_h))
+    self.theta_l_bias = np.random.uniform(-1,1,size=output_size)
+    self.theta_size = self.theta_l.size + self.theta_h.size + self.theta_l_bias.size
   '''
   input: all input states with the first successive states being inputs for
     the high level controller and remaining states being inputs to the low
@@ -71,16 +72,19 @@ class HPolicy():
   def evaluate(self, input, delta=None, direction=None):
     #reshape delta from flat to shape of theta h and l
     if delta is not None:
-      [delta_h,delta_l] = self.reshapeFromFlat(delta)
+      [delta_h,delta_l,delta_l_bias] = self.reshapeFromFlat(delta)
     if direction is None:
       theta_l_temp = self.theta_l
       theta_h_temp = self.theta_h
+      theta_l_bias_temp = self.theta_l_bias
     elif direction == "positive":
       theta_l_temp = self.theta_l + hp.noise * delta_l
       theta_h_temp = self.theta_h + hp.noise * delta_h
+      theta_l_bias_temp = self.theta_l_bias + hp.noise * delta_l_bias
     else:
       theta_l_temp = self.theta_l - hp.noise * delta_l
       theta_h_temp = self.theta_h - hp.noise * delta_h
+      theta_l_bias_temp = self.theta_l_bias - hp.noise * delta_l_bias
 
     input_h = input[0:self.input_size_h]
     input_l = input[self.input_size_h:]
@@ -89,7 +93,7 @@ class HPolicy():
       self.latent_comm = output_h[0:self.latent_size]
       self.time_step_h = np.interp(output_h[-1], (-1, 1), (100, 700))
     self.time_step_h -= 1
-    return theta_l_temp@np.concatenate((input_l, self.latent_comm))
+    return theta_l_temp@np.concatenate((input_l, self.latent_comm))+theta_l_bias_temp
 
   def sampleDeltas(self):
     #samples flat delta
@@ -102,19 +106,22 @@ class HPolicy():
 
     #flat theta update values
     update_thetas = hp.learning_rate / (hp.nb_best_directions * sigma_r) * step
-    [update_h,update_l] = self.reshapeFromFlat(update_thetas)
+    [update_h,update_l,update_bias] = self.reshapeFromFlat(update_thetas)
     self.theta_h += update_h
     self.theta_l += update_l
+    self.theta_l_bias += update_bias
 
   def reshapeFromFlat(self, flat):
     h = flat[0:self.theta_h.size].reshape(self.theta_h.shape)
-    l = flat[self.theta_h.size:].reshape(self.theta_l.shape)
-    return [h,l]
+    l = flat[self.theta_h.size:self.theta_h.size+self.theta_l.size].reshape(self.theta_l.shape)
+    b = flat[self.theta_h.size+self.theta_l.size:].reshape(self.theta_l_bias.shape)
+    return [h,l,b]
 
   def flattenWeights(self):
       h = np.ndarray.flatten(self.theta_h)
       l = np.ndarray.flatten(self.theta_l)
-      return np.concatenate((h,l))
+      b = np.ndarray.flatten(self.theta_l_bias)
+      return np.concatenate((h,l,b))
 
   def saveWeights(self,step=0):
     weights_path = 'weights_ars'
@@ -125,7 +132,7 @@ class HPolicy():
   def loadWeights(self,file_location='weights_ars/weights_0.csv'):
     # save to csv file
     weights = loadtxt(file_location, delimiter=',')
-    [self.theta_h,self.theta_l] = reshapeFromFlat(weights)
+    [self.theta_h,self.theta_l,self.theta_l_bias] = reshapeFromFlat(weights)
 
 # Exploring a policy in one specific direction and over one episode
 def explore(env, normalizer, policy, direction=None, delta=None):
@@ -181,8 +188,11 @@ def train(env, policy, normalizer, hp):
     if step%10 is 0:
       policy.saveWeights(step=step)
 
-
-
+#test policy with weights loaded from csv
+def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
+    policy.loadWeights(weights_files)
+    reward_evaluation = explore(env, normalizer, policy)
+    print('Step:', step, 'Reward:', reward_evaluation)
 # MAIN FUCTION
 
 import envs.env_builder as env_builder

@@ -100,7 +100,7 @@ class LocomotionGymEnv(gym.Env):
     # The wall-clock time at which the last frame is rendered.
     self._last_frame_time = 0.0
     self._show_reference_id = -1
-    
+
     if self._is_render:
       self._pybullet_client = bullet_client.BulletClient(
           connection_mode=pybullet.GUI)
@@ -283,12 +283,12 @@ class LocomotionGymEnv(gym.Env):
       self._pybullet_client.configureDebugVisualizer(
         self._pybullet_client.COV_ENABLE_SINGLE_STEP_RENDERING,1)
       alpha = self._pybullet_client.readUserDebugParameter(self._show_reference_id)
-      
+
       ref_col = [1, 1, 1, alpha]
       self._pybullet_client.changeVisualShape(self._task._ref_model, -1, rgbaColor=ref_col)
       for l in range (self._pybullet_client.getNumJoints(self._task._ref_model)):
       	self._pybullet_client.changeVisualShape(self._task._ref_model, l, rgbaColor=ref_col)
-    
+
       delay = self._pybullet_client.readUserDebugParameter(self._delay_id)
       if (delay>0):
         time.sleep(delay)
@@ -390,9 +390,6 @@ class LocomotionGymEnv(gym.Env):
       sensors_dict[s.get_name()] = s.get_observation()
 
     observations = collections.OrderedDict(sorted(list(sensors_dict.items())))
-
-    # print('Robot')
-    # print('Robot')
 
     return observations
 

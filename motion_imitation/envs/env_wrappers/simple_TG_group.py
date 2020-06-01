@@ -65,6 +65,10 @@ class SimpleTGGroup(object):
 
         print("Action space shape is ")
         print(self.action_space.shape)
+        print("Action space upper is ")
+        print(self.action_space.high)
+        print("Action space lower is ")
+        print(self.action_space.low)
 
         assert init_lg_param.size is 1 + 9 * 4
 
@@ -145,6 +149,9 @@ class SimpleTGGroup(object):
     Returns:
       A numpy array. The desired motor angles.
     """
+        input_action = np.clip(input_action,self.action_space.low,self.action_space.high)
+        # print('clipped policy action')
+        # print(input_action)
 
         # either get the current time to update or get time increment
         # probably the former
@@ -177,7 +184,9 @@ class SimpleTGGroup(object):
         # print("output is")
         # print(tg_pose)
 
-        return self._pose + input_action[:num_joint] + tg_pose
+        #clip the offsets
+        offset_actions = np.clip(input_action[:num_joint],-0.1,0.1)
+        return self._pose + tg_pose + offset_actions #input_action[:num_joint]
         # return self._pose
 
     def get_observation(self, input_observation):
