@@ -147,6 +147,8 @@ class SimpleTGGroup(object):
             res[7] = np.pi / 4
             res[8] = 0.2
 
+        # res = np.zeros(9)
+
         return res
 
     def get_default_lower_bound(self, leg_id):
@@ -161,6 +163,7 @@ class SimpleTGGroup(object):
 
         res *= -1
 
+        # res = np.zeros(9)
         return res
 
     def _update_phi_t(self, f_tg, current_time=None):
