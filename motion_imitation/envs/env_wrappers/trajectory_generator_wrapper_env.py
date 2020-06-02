@@ -87,12 +87,10 @@ class TrajectoryGeneratorWrapperEnv(object):
 
     if action is None:
       raise ValueError('Action cannot be None')
-    # print('policy action')
-    # print(action)
+
     new_action = self._trajectory_generator.get_action(
         self._gym_env.robot.GetTimeSinceReset(), action)
-    # print('tg action')
-    # print(new_action)
+
     original_observation, reward, done, _ = self._gym_env.step(new_action)
 
     return self._modify_observation(original_observation), reward, done, _

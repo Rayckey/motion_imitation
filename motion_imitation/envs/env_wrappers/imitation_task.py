@@ -23,12 +23,12 @@ import logging
 import os
 import numpy as np
 
+from scipy.spatial.transform import Rotation as R
 from envs.env_wrappers import imitation_terminal_conditions
 from utilities import pose3d
 from utilities import motion_data
 from utilities import motion_util
 from pybullet_utils import transformations
-
 
 class ImitationTask(object):
     """Imitation reference motion task."""
@@ -110,6 +110,7 @@ class ImitationTask(object):
         self._weight = weight
         self._terminal_condition = terminal_condition
         self._last_base_position = None
+        self._last_base_rotation = None
         self._clip_velocity = clip_velocity
         self._action_history_sensor = None
         self._env = None
@@ -349,7 +350,7 @@ class ImitationTask(object):
     def reward(self, env):
         """Get the reward without side effects."""
         del env
-        #
+        
         # # pose_reward = self._calc_reward_pose()
         # # velocity_reward = self._calc_reward_velocity()
         # # end_effector_reward = self._calc_reward_end_effector()

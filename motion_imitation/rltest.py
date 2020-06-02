@@ -5,22 +5,29 @@ import numpy as np
 import os
 import argparse
 import gym.wrappers as wrappers
-from numpy import savetxt
+
 
 
 #Hyper Parameters
 class Hp():
-  def __init__(self):
-    self.nb_steps = 1000
-    self.episode_length = 1000
-    self.learning_rate = 0.02
-    self.nb_directions = 16
-    self.nb_best_directions = 16
+  def __init__(self,
+                nb_steps = 10000,
+                episode_length = 1000,
+                learning_rate = 0.02,
+                nb_directions = 16,
+                nb_best_directions = 16,
+                noise = 0.03,
+                seed = 1,
+                latent_dim = 2):
+    self.nb_steps = nb_steps
+    self.episode_length = episode_length
+    self.learning_rate = learning_rate
+    self.nb_directions = nb_directions
+    self.nb_best_directions = nb_best_directions
     assert self.nb_best_directions <= self.nb_directions
-    self.noise = 0.03
-    self.seed = 1
-    self.env_name = 'HalfCheetahBulletEnv-v0'
-    self.latent_dim = 2
+    self.noise = noise
+    self.seed = seed
+    self.latent_dim = latent_dim
 
 
 # Normalizing the states
@@ -54,15 +61,17 @@ class HPolicy():
   latent_size: hyperparameter, number of dimensions of latent commands
     outputted by high level controller and given to low level controller
   '''
-  def __init__(self, input_size_h, input_size_l, latent_size, output_size):
+  def __init__(self, input_size_h, input_size_l, latent_size, output_size, history_size):
     self.time_step_h = 0;
     self.latent_comm = None;
     self.input_size_h = input_size_h
     self.input_size_l = input_size_l
     self.latent_size = latent_size
-    self.theta_l = np.zeros((output_size, input_size_l + latent_size))
-    self.theta_h = np.zeros((latent_size + 1, input_size_h))
-    self.theta_size = self.theta_l.size + self.theta_h.size
+    self.theta_l = np.random.uniform(-1,1,size=(output_size, input_size_l + latent_size))
+    self.theta_h = np.random.uniform(-1,1,size=(latent_size + 1, input_size_h))
+    self.theta_l_bias = np.random.uniform(-1,1,size=output_size)
+    self.theta_size = self.theta_l.size + self.theta_h.size + self.theta_l_bias.size
+    self.history_size = history_size
   '''
   input: all input states with the first successive states being inputs for
     the high level controller and remaining states being inputs to the low
@@ -71,25 +80,27 @@ class HPolicy():
   def evaluate(self, input, delta=None, direction=None):
     #reshape delta from flat to shape of theta h and l
     if delta is not None:
-      [delta_h,delta_l] = self.reshapeFromFlat(delta)
+      [delta_h,delta_l,delta_l_bias] = self.reshapeFromFlat(delta)
     if direction is None:
       theta_l_temp = self.theta_l
       theta_h_temp = self.theta_h
+      theta_l_bias_temp = self.theta_l_bias
     elif direction == "positive":
       theta_l_temp = self.theta_l + hp.noise * delta_l
       theta_h_temp = self.theta_h + hp.noise * delta_h
+      theta_l_bias_temp = self.theta_l_bias + hp.noise * delta_l_bias
     else:
       theta_l_temp = self.theta_l - hp.noise * delta_l
       theta_h_temp = self.theta_h - hp.noise * delta_h
+      theta_l_bias_temp = self.theta_l_bias - hp.noise * delta_l_bias
 
-    input_h = input[0:self.input_size_h]
-    input_l = input[self.input_size_h:]
+    [input_h,input_l] = self.splitInput(input)
     if self.time_step_h <= 0:
       output_h = np.clip(theta_h_temp@input_h,-1,1)
       self.latent_comm = output_h[0:self.latent_size]
       self.time_step_h = np.interp(output_h[-1], (-1, 1), (100, 700))
     self.time_step_h -= 1
-    return theta_l_temp@np.concatenate((input_l, self.latent_comm))
+    return theta_l_temp@np.concatenate((input_l, self.latent_comm))+theta_l_bias_temp
 
   def sampleDeltas(self):
     #samples flat delta
@@ -102,30 +113,43 @@ class HPolicy():
 
     #flat theta update values
     update_thetas = hp.learning_rate / (hp.nb_best_directions * sigma_r) * step
-    [update_h,update_l] = self.reshapeFromFlat(update_thetas)
+    [update_h,update_l,update_bias] = self.reshapeFromFlat(update_thetas)
     self.theta_h += update_h
     self.theta_l += update_l
+    self.theta_l_bias += update_bias
 
   def reshapeFromFlat(self, flat):
     h = flat[0:self.theta_h.size].reshape(self.theta_h.shape)
-    l = flat[self.theta_h.size:].reshape(self.theta_l.shape)
-    return [h,l]
+    l = flat[self.theta_h.size:self.theta_h.size+self.theta_l.size].reshape(self.theta_l.shape)
+    b = flat[self.theta_h.size+self.theta_l.size:].reshape(self.theta_l_bias.shape)
+    return [h,l,b]
 
   def flattenWeights(self):
       h = np.ndarray.flatten(self.theta_h)
       l = np.ndarray.flatten(self.theta_l)
-      return np.concatenate((h,l))
+      b = np.ndarray.flatten(self.theta_l_bias)
+      return np.concatenate((h,l,b))
+
+  def splitInput(self,input):
+      h = input[0:3*self.history_size]
+      l = input[3*self.history_size+self.history_size*5:]
+      for i in range(self.history_size):
+        imu_index = int(3*self.history_size+i*5)
+        h = np.concatenate([h,input[imu_index,np.newaxis]])
+        #the order of IMU history is reversed here (probably okay to keep)
+        l = np.concatenate([input[imu_index+1:imu_index+5],l])
+      return [h,l]
 
   def saveWeights(self,step=0):
     weights_path = 'weights_ars'
     if not os.path.exists(weights_path):
             os.makedirs(weights_path)
-    savetxt('weights_ars/weights' + str(step) + '.csv', self.flattenWeights(), delimiter=',')
+    np.savetxt('weights_ars/weights_' + str(step) + '.csv', self.flattenWeights(), delimiter=',')
 
   def loadWeights(self,file_location='weights_ars/weights_0.csv'):
     # save to csv file
-    weights = loadtxt(file_location, delimiter=',')
-    [self.theta_h,self.theta_l] = reshapeFromFlat(weights)
+    weights = np.loadtxt(file_location, delimiter=',')
+    [self.theta_h,self.theta_l,self.theta_l_bias] = self.reshapeFromFlat(weights)
 
 # Exploring a policy in one specific direction and over one episode
 def explore(env, normalizer, policy, direction=None, delta=None):
@@ -138,7 +162,6 @@ def explore(env, normalizer, policy, direction=None, delta=None):
     state = normalizer.normalize(state)
     action = policy.evaluate(state, delta, direction)
     state, reward, done, _ = env.step(action)
-
     sum_rewards += reward
     num_plays += 1
   return sum_rewards
@@ -146,6 +169,7 @@ def explore(env, normalizer, policy, direction=None, delta=None):
 
 # Training the AI
 def train(env, policy, normalizer, hp):
+  max_reward = 0
   for step in range(hp.nb_steps):
 
     # Initializing the perturbations deltas and the positive/negative rewards
@@ -177,34 +201,54 @@ def train(env, policy, normalizer, hp):
     reward_evaluation = explore(env, normalizer, policy)
     print('Step:', step, 'Reward:', reward_evaluation)
 
-    #save weights
-    if step%10 is 0:
-      policy.saveWeights(step=step)
+    #save weights for maximum reward and ever 50 steps
+    if reward_evaluation > max_reward:
+        max_reward = reward_evaluation
+        policy.saveWeights(step=-1)
+    if step%50 is 0:
+        policy.saveWeights(step=step)
 
+#test policy with weights loaded from csv
+def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
+    policy.loadWeights(file_location=weights_file)
+    reward_evaluation = explore(env, normalizer, policy)
+    print('Reward:', reward_evaluation)
 
 
 # MAIN FUCTION
-
 import envs.env_builder as env_builder
 
 # Define constants (maybe read from robot class/environment later)
+sensor_history_num = 3
 leg_pos_dim = 12
-input_dim_h = 4
-input_dim_l = 4+leg_pos_dim
+input_dim_h = 4*sensor_history_num
+input_dim_l = (4+leg_pos_dim)*sensor_history_num
 
-
-video_path = 'monitor'
-if not os.path.exists(video_path):
-        os.makedirs(video_path)
-
-hp = Hp()
-np.random.seed(hp.seed)
 #update this with our laikago env
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
 arg_parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
+arg_parser.add_argument("--mode", dest="mode", type=str, default="train")
+arg_parser.add_argument("--steps", dest="steps", type=int, default=1000)
+arg_parser.add_argument("--eplength", dest="eplength", type=int, default=1000)
+arg_parser.add_argument("--learnrate", dest="learnrate", type=float, default=0.02)
+arg_parser.add_argument("--ndirections", dest="ndirections", type=int, default=16)
+arg_parser.add_argument("--nbestdir", dest="nbestdir", type=int, default=16)
+arg_parser.add_argument("--noise", dest="noise", type=float, default=0.03)
+arg_parser.add_argument("--latent", dest="latent", type=int, default=2)
+arg_parser.add_argument("--weights", dest="weights", type=str, default=None)
+
 args = arg_parser.parse_args()
 
+hp = Hp(nb_steps = args.steps,
+    episode_length = args.eplength,
+    learning_rate = args.learnrate,
+    nb_directions = args.ndirections,
+    nb_best_directions = args.nbestdir,
+    noise = args.noise,
+    seed = 1,
+    latent_dim = args.latent)
+np.random.seed(hp.seed)
 
 env = env_builder.build_imitation_env(motion_files=[args.motion_file],
                                         num_parallel_envs=1,
@@ -215,6 +259,13 @@ env = env_builder.build_imitation_env(motion_files=[args.motion_file],
 #env = wrappers.Monitor(env, video_path, force=True)
 nb_inputs = env.observation_space.shape[0]
 nb_outputs = env.action_space.shape[0]
-policy = HPolicy(input_dim_h,input_dim_l, hp.latent_dim, nb_outputs)
+policy = HPolicy(input_dim_h,nb_inputs-input_dim_h,
+                hp.latent_dim, nb_outputs,sensor_history_num)
 normalizer = Normalizer(nb_inputs)
-train(env, policy, normalizer, hp)
+
+if args.mode == 'train':
+  if args.weights != None:
+      policy.loadWeights(args.weights)
+  train(env, policy, normalizer, hp)
+else:
+  test(env, policy, normalizer, args.weights)

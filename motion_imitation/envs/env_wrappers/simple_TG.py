@@ -205,6 +205,7 @@ class SimpleTG(object):
         res = self.get_IK(tar=tar)
 
         # if self._leg_id == 0:
+
         #     print("from IK 0")
         #     print(res)
         #

@@ -135,6 +135,7 @@ class SimpleTGGroup(object):
 
         # res[4] -= 0.05
 
+
         return res
 
     def get_default_upper_bound(self, leg_id):
@@ -142,6 +143,7 @@ class SimpleTGGroup(object):
         # indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
 
         res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
+
 
         if self._is_touting == 0:
             res[7] = np.pi / 2
@@ -171,6 +173,21 @@ class SimpleTGGroup(object):
 
         return res
 
+    def get_default_lower_bound(self, leg_id):
+
+        res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
+
+        if self._is_touting == 0:
+            res[7] = np.pi / 2
+        else:
+            res[7] = np.pi / 4
+            res[8] = 0.2
+
+        res *= -1
+
+        # res = np.zeros(9)
+        return res
+
     def _update_phi_t(self, f_tg, current_time=None):
 
         if current_time is None:
@@ -183,11 +200,9 @@ class SimpleTGGroup(object):
 
     def get_action(self, current_time=None, input_action=None):
         """Computes the trajectory according to input time and action.
-
     Args:
       current_time: The time in gym env since reset.
       input_action: A numpy array. The input [leg correction] and [trajectory parameters} from a NN controller.
-
     Returns:
       A numpy array. The desired motor angles.
     """
@@ -204,6 +219,9 @@ class SimpleTGGroup(object):
 
         # retrieve from TG
         # print(self._f_tg)
+
+        input_action = np.clip(input_action,self.action_space.low,self.action_space.high)
+
         input_param = np.concatenate([self._f_tg, input_action[num_joint:]]) + self._init_lg_param
 
         for leg_num in range(len(self._tg)):
