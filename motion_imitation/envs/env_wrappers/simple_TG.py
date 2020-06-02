@@ -159,7 +159,7 @@ class SimpleTG(object):
 
         inner_upper = np.arccos((c * c + l_upper * l_upper - l_lower * l_lower) / (2.0 * c * l_upper))
 
-        tip_2_hip_swing = -np.arctan2(x, tip_2_hip_extent)
+        tip_2_hip_swing = np.arctan2(x, tip_2_hip_extent)
 
         inner_lower = np.arccos((l_upper * l_upper + l_lower * l_lower - c * c) / (2.0 * l_lower * l_upper))
 
@@ -205,7 +205,12 @@ class SimpleTG(object):
         res = self.get_IK(tar=tar)
 
         # if self._leg_id == 0:
-        #     print("from IK")
+
+        #     print("from IK 0")
+        #     print(res)
+        #
+        # if self._leg_id == 3:
+        #     print("from IK 3")
         #     print(res)
 
         # account for motor direction

@@ -71,7 +71,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
   #                                                                      trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=laikago.UPPER_BOUND , init_lg_param=None))
   env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
                                                                          trajectory_generator=simple_TG_group.SimpleTGGroup(
-                                                                             action_limit=0.5,
+                                                                             action_limit=0.4,
                                                                              init_lg_param=None, is_touting=2, init_f_tg=2))
 
   # if mode == "test":

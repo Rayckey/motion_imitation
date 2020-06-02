@@ -133,11 +133,30 @@ class SimpleTGGroup(object):
         else:
             res[4] = -0.054
 
+        # res[4] -= 0.05
+
+
         return res
 
     def get_default_upper_bound(self, leg_id):
         # f_tg = np.array([1.5])
         # indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
+
+        res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
+
+
+        if self._is_touting == 0:
+            res[7] = np.pi / 2
+        else:
+            res[7] = np.pi / 4
+            res[8] = 0.2
+
+        # set zeros, use this when testing
+        # res = np.zeros(9)
+
+        return res
+
+    def get_default_lower_bound(self, leg_id):
 
         res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
 
@@ -147,6 +166,9 @@ class SimpleTGGroup(object):
             res[7] = np.pi / 4
             res[8] = 0.2
 
+        res *= -1
+
+        # set zeros, use this when testing
         # res = np.zeros(9)
 
         return res
@@ -197,7 +219,9 @@ class SimpleTGGroup(object):
 
         # retrieve from TG
         # print(self._f_tg)
+
         input_action = np.clip(input_action,self.action_space.low,self.action_space.high)
+
         input_param = np.concatenate([self._f_tg, input_action[num_joint:]]) + self._init_lg_param
 
         for leg_num in range(len(self._tg)):
