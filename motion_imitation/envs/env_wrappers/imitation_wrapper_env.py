@@ -38,7 +38,7 @@ class ImitationWrapperEnv(object):
       gym_env: An instance of LocomotionGymEnv.
     """
     self._gym_env = gym_env
-    self.observation_space = self._build_observation_space()
+    # self.observation_space = self._build_observation_space()
 
     self._episode_length_start = episode_length_start
     self._episode_length_end = episode_length_end
@@ -69,7 +69,7 @@ class ImitationWrapperEnv(object):
 
     """
     original_observation, reward, done, _ = self._gym_env.step(action)
-    observation = self._modify_observation(original_observation)
+    # observation = self._modify_observation(original_observation)
     terminated = done
 
     done |= (self.env_step_counter >= self._max_episode_steps)
@@ -79,7 +79,7 @@ class ImitationWrapperEnv(object):
 
     info = {"terminated": terminated}
 
-    return observation, reward, done, info
+    return original_observation, reward, done, info
 
   def reset(self, initial_motor_angles=None, reset_duration=0.0):
     """Resets the robot's position in the world or rebuild the sim world.
@@ -96,13 +96,13 @@ class ImitationWrapperEnv(object):
       A numpy array contains the initial observation after reset.
     """
     original_observation = self._gym_env.reset(initial_motor_angles, reset_duration)
-    observation = self._modify_observation(original_observation)
+    # observation = self._modify_observation(original_observation)
 
     if self._enable_curriculum():
       self._update_time_limit()
 
-    return observation
-  
+    return original_observation
+
   def _modify_observation(self, original_observation):
     """Appends target observations from the reference motion to the observations.
 
@@ -115,7 +115,7 @@ class ImitationWrapperEnv(object):
     """
     target_observation = self._task.build_target_obs()
     observation = np.concatenate([original_observation, target_observation], axis=-1)
-    return observation
+    return original_observation
 
   def _build_observation_space(self):
     """Constructs the observation space, including target observations from

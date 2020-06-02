@@ -5,7 +5,7 @@ import numpy as np
 import os
 import argparse
 import gym.wrappers as wrappers
-from numpy import savetxt
+
 
 
 #Hyper Parameters
@@ -134,11 +134,11 @@ class HPolicy():
     weights_path = 'weights_ars'
     if not os.path.exists(weights_path):
             os.makedirs(weights_path)
-    savetxt('weights_ars/weights' + str(step) + '.csv', self.flattenWeights(), delimiter=',')
+    np.savetxt('weights_ars/weights_' + str(step) + '.csv', self.flattenWeights(), delimiter=',')
 
   def loadWeights(self,file_location='weights_ars/weights_0.csv'):
     # save to csv file
-    weights = loadtxt(file_location, delimiter=',')
+    weights = np.loadtxt(file_location, delimiter=',')
     [self.theta_h,self.theta_l,self.theta_l_bias] = reshapeFromFlat(weights)
 
 # Exploring a policy in one specific direction and over one episode
@@ -206,7 +206,7 @@ def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
 import envs.env_builder as env_builder
 
 # Define constants (maybe read from robot class/environment later)
-sensor_history_num = 1
+sensor_history_num = 3
 leg_pos_dim = 12
 input_dim_h = 4*sensor_history_num
 input_dim_l = (4+leg_pos_dim)*sensor_history_num
@@ -246,7 +246,7 @@ env = env_builder.build_imitation_env(motion_files=[args.motion_file],
 #env = wrappers.Monitor(env, video_path, force=True)
 nb_inputs = env.observation_space.shape[0]
 nb_outputs = env.action_space.shape[0]
-policy = HPolicy(input_dim_h,input_dim_l, hp.latent_dim, nb_outputs)
+policy = HPolicy(input_dim_h,nb_inputs-input_dim_h, hp.latent_dim, nb_outputs)
 normalizer = Normalizer(nb_inputs)
 
 if args.mode is "train":
