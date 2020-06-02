@@ -11,7 +11,7 @@ import gym.wrappers as wrappers
 #Hyper Parameters
 class Hp():
   def __init__(self,
-                nb_steps = 1000,
+                nb_steps = 10000,
                 episode_length = 1000,
                 learning_rate = 0.02,
                 nb_directions = 16,
@@ -61,7 +61,7 @@ class HPolicy():
   latent_size: hyperparameter, number of dimensions of latent commands
     outputted by high level controller and given to low level controller
   '''
-  def __init__(self, input_size_h, input_size_l, latent_size, output_size):
+  def __init__(self, input_size_h, input_size_l, latent_size, output_size, history_size):
     self.time_step_h = 0;
     self.latent_comm = None;
     self.input_size_h = input_size_h
@@ -71,6 +71,7 @@ class HPolicy():
     self.theta_h = np.random.uniform(-1,1,size=(latent_size + 1, input_size_h))
     self.theta_l_bias = np.random.uniform(-1,1,size=output_size)
     self.theta_size = self.theta_l.size + self.theta_h.size + self.theta_l_bias.size
+    self.history_size = history_size
   '''
   input: all input states with the first successive states being inputs for
     the high level controller and remaining states being inputs to the low
@@ -93,8 +94,7 @@ class HPolicy():
       theta_h_temp = self.theta_h - hp.noise * delta_h
       theta_l_bias_temp = self.theta_l_bias - hp.noise * delta_l_bias
 
-    input_h = input[0:self.input_size_h]
-    input_l = input[self.input_size_h:]
+    [input_h,input_l] = self.splitInput(input)
     if self.time_step_h <= 0:
       output_h = np.clip(theta_h_temp@input_h,-1,1)
       self.latent_comm = output_h[0:self.latent_size]
@@ -130,6 +130,16 @@ class HPolicy():
       b = np.ndarray.flatten(self.theta_l_bias)
       return np.concatenate((h,l,b))
 
+  def splitInput(self,input):
+      h = input[0:3*self.history_size]
+      l = input[3*self.history_size+self.history_size*5:]
+      for i in range(self.history_size):
+        imu_index = int(3*self.history_size+i*5)
+        h = np.concatenate([h,input[imu_index,np.newaxis]])
+        #the order of IMU history is reversed here (probably okay to keep)
+        l = np.concatenate([input[imu_index+1:imu_index+5],l])
+      return [h,l]
+
   def saveWeights(self,step=0):
     weights_path = 'weights_ars'
     if not os.path.exists(weights_path):
@@ -152,7 +162,6 @@ def explore(env, normalizer, policy, direction=None, delta=None):
     state = normalizer.normalize(state)
     action = policy.evaluate(state, delta, direction)
     state, reward, done, _ = env.step(action)
-
     sum_rewards += reward
     num_plays += 1
   return sum_rewards
@@ -160,6 +169,7 @@ def explore(env, normalizer, policy, direction=None, delta=None):
 
 # Training the AI
 def train(env, policy, normalizer, hp):
+  max_reward = 0
   for step in range(hp.nb_steps):
 
     # Initializing the perturbations deltas and the positive/negative rewards
@@ -191,15 +201,18 @@ def train(env, policy, normalizer, hp):
     reward_evaluation = explore(env, normalizer, policy)
     print('Step:', step, 'Reward:', reward_evaluation)
 
-    #save weights
-    if step%10 is 0:
-      policy.saveWeights(step=step)
+    #save weights for maximum reward and ever 50 steps
+    if reward_evaluation > max_reward:
+        max_reward = reward_evaluation
+        policy.saveWeights(step=-1)
+    if step%50 is 0:
+        policy.saveWeights(step=step)
 
 #test policy with weights loaded from csv
 def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
     policy.loadWeights(file_location=weights_file)
     reward_evaluation = explore(env, normalizer, policy)
-    print('Step:', step, 'Reward:', reward_evaluation)
+    print('Reward:', reward_evaluation)
 
 
 # MAIN FUCTION
@@ -223,7 +236,7 @@ arg_parser.add_argument("--ndirections", dest="ndirections", type=int, default=1
 arg_parser.add_argument("--nbestdir", dest="nbestdir", type=int, default=16)
 arg_parser.add_argument("--noise", dest="noise", type=float, default=0.03)
 arg_parser.add_argument("--latent", dest="latent", type=int, default=2)
-arg_parser.add_argument("--weights", dest="weights", type=str, default='weights_ars/weights_0.csv')
+arg_parser.add_argument("--weights", dest="weights", type=str, default=None)
 
 args = arg_parser.parse_args()
 
@@ -246,10 +259,13 @@ env = env_builder.build_imitation_env(motion_files=[args.motion_file],
 #env = wrappers.Monitor(env, video_path, force=True)
 nb_inputs = env.observation_space.shape[0]
 nb_outputs = env.action_space.shape[0]
-policy = HPolicy(input_dim_h,nb_inputs-input_dim_h, hp.latent_dim, nb_outputs)
+policy = HPolicy(input_dim_h,nb_inputs-input_dim_h,
+                hp.latent_dim, nb_outputs,sensor_history_num)
 normalizer = Normalizer(nb_inputs)
 
-if args.mode is "train":
+if args.mode == 'train':
+  if args.weights != None:
+      policy.loadWeights(args.weights)
   train(env, policy, normalizer, hp)
 else:
   test(env, policy, normalizer, args.weights)

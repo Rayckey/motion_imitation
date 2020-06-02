@@ -374,9 +374,18 @@ class LocomotionGymEnv(gym.Env):
 
     return False
 
+  #modify reward with roll pitch yaw considerations
   def _reward(self):
     if self._task:
-      return self._task(self)
+        reward = self._task(self)
+        [r,p,_] = self._robot.GetBaseRollPitchYaw()
+        [dr,dp,_] = self._robot.GetBaseRollPitchYawRate()
+        # print('rp:',[r,p])
+        # print('drdp:',[dr,dp])
+        # print('Goal Reward:',reward)
+        reward = reward - 0.01*abs(r) - 0.01*abs(p) - 0.0005*abs(dr) - 0.0005*abs(dp)
+        # print('Total Reward:',reward)
+        return reward
     return 0
 
   def _get_observation(self):
@@ -390,7 +399,6 @@ class LocomotionGymEnv(gym.Env):
       sensors_dict[s.get_name()] = s.get_observation()
 
     observations = collections.OrderedDict(sorted(list(sensors_dict.items())))
-
     return observations
 
   def set_time_step(self, num_action_repeat, sim_step=0.001):
