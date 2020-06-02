@@ -139,7 +139,7 @@ class HPolicy():
   def loadWeights(self,file_location='weights_ars/weights_0.csv'):
     # save to csv file
     weights = np.loadtxt(file_location, delimiter=',')
-    [self.theta_h,self.theta_l,self.theta_l_bias] = reshapeFromFlat(weights)
+    [self.theta_h,self.theta_l,self.theta_l_bias] = self.reshapeFromFlat(weights)
 
 # Exploring a policy in one specific direction and over one episode
 def explore(env, normalizer, policy, direction=None, delta=None):
