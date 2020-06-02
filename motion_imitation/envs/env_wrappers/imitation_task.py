@@ -360,7 +360,44 @@ class ImitationTask(object):
         # reward = self._root_pose_weight * root_pose_reward \
         #          + self._root_velocity_weight * root_velocity_reward
 
+        # self.fix_rocky(self._env.robot.quadruped)
         return self._calc_goal_reward() * self._weight
+
+
+    def fix_rocky(self, phys_model):
+        """It just fixes the model
+    """
+        motion = self.get_active_motion()
+        pyb = self._get_pybullet_client()
+
+        # root_pos = motion.get_frame_root_pos(pose)
+        # root_rot = motion.get_frame_root_rot(pose)
+        # root_vel = motion.get_frame_root_vel(vel)
+        # root_ang_vel = motion.get_frame_root_ang_vel(vel)
+
+        root_pos_ref = np.array([self._get_motion_time() * self._r_velocity, 0, 0.44135117])
+        root_rot_ref = np.array([-0.5, -0.5, -0.5, -0.5])
+
+        root_pos_vel = np.array([0,0,0])
+        root_rot_vel = np.array([0,0,0])
+
+        pyb.resetBasePositionAndOrientation(phys_model, root_pos_ref, root_rot_ref)
+        pyb.resetBaseVelocity(phys_model, root_pos_vel, root_rot_vel)
+
+        # num_joints = self._get_num_joints()
+        # for j in range(num_joints):
+        #     q_idx = self._get_joint_pose_idx(j)
+        #     q_size = self._get_joint_pose_size(j)
+        #
+        #     dq_idx = self._get_joint_vel_idx(j)
+        #     dq_size = self._get_joint_vel_size(j)
+        #
+        #     if (q_size > 0):
+        #         assert (dq_size > 0)
+        #
+        #         j_pose = pose[q_idx:(q_idx + q_size)]
+        #         j_vel = vel[dq_idx:(dq_idx + dq_size)]
+        #         pyb.resetJointStateMultiDof(phys_model, j, j_pose, j_vel)
 
     def _calc_reward_pose(self):
         """Get the pose reward."""
