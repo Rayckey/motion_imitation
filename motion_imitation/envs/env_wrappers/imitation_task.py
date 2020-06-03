@@ -361,6 +361,7 @@ class ImitationTask(object):
         # reward = self._root_pose_weight * root_pose_reward \
         #          + self._root_velocity_weight * root_velocity_reward
 
+
         # self.fix_rocky(self._env.robot.quadruped)
         return self._calc_goal_reward() * self._weight + self._calc_rollpitch_reward()
 
@@ -399,6 +400,7 @@ class ImitationTask(object):
         #         j_pose = pose[q_idx:(q_idx + q_size)]
         #         j_vel = vel[dq_idx:(dq_idx + dq_size)]
         #         pyb.resetJointStateMultiDof(phys_model, j, j_pose, j_vel)
+
 
     def _calc_reward_pose(self):
         """Get the pose reward."""

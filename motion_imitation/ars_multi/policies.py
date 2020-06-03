@@ -7,7 +7,7 @@ Benjamin Recht
 
 
 import numpy as np
-from filter import get_filter
+from ars_multi.filter import get_filter
 
 class Policy(object):
 
@@ -71,28 +71,29 @@ class HLinearPolicy(Policy):
         self.time_step_h = 0
         self.latent_comm = None
         self.theta_h_size = (self.latent_dim + 1) * self.ob_h_dim
+        self.theta_l_size = self.ac_dim*(self.latent_dim+self.ob_l_dim)
         self.theta_size = self.ac_dim * (self.ob_l_dim + self.latent_dim + 1) + self.theta_h_size
         self.weights = np.zeros(self.theta_size, dtype = np.float64)
 
     def act(self, ob):
         ob = self.observation_filter(ob, update=self.update_filter)
         #reshape delta from flat to shape of theta h and l
-        [theta_h,theta_l_theta_b] = self.reshapeFromFlat(self.weights)
+        [theta_h,theta_l,theta_b] = self.reshapeFromFlat(self.weights)
 
         [ob_h,ob_l] = self.splitInput(ob)
         #high level policy
         if self.time_step_h <= 0:
           output_h = np.clip(theta_h@ob_h,-1,1)
-          self.latent_comm = output_h[0:self.latent_size]
+          self.latent_comm = output_h[0:self.latent_dim]
           self.time_step_h = np.interp(output_h[-1], (-1, 1), (100, 700))
         self.time_step_h -= 1
         return theta_l@np.concatenate((ob_l, self.latent_comm))+theta_b
 
 
     def reshapeFromFlat(self, flat):
-        h = flat[0:self.theta_h.size].reshape(self.theta_h.shape)
-        l = flat[self.theta_h.size:self.theta_h.size+self.theta_l.size].reshape(self.theta_l.shape)
-        b = flat[self.theta_h.size+self.theta_l.size:].reshape(self.theta_l_bias.shape)
+        h = flat[0:self.theta_h_size].reshape((self.latent_dim + 1,self.ob_h_dim))
+        l = flat[self.theta_h_size:self.theta_h_size+self.theta_l_size].reshape((self.ac_dim,(self.latent_dim+self.ob_l_dim)))
+        b = flat[self.theta_h_size+self.theta_l_size:].reshape((self.ac_dim,))
         return [h,l,b]
 
     def get_weights_plus_stats(self):
