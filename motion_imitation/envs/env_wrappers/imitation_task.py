@@ -350,7 +350,7 @@ class ImitationTask(object):
     def reward(self, env):
         """Get the reward without side effects."""
         del env
-        
+
         # # pose_reward = self._calc_reward_pose()
         # # velocity_reward = self._calc_reward_velocity()
         # # end_effector_reward = self._calc_reward_end_effector()
@@ -555,6 +555,17 @@ class ImitationTask(object):
         prevdist = np.linalg.norm(self._last_base_position-self._goal)
         return prevdist-goaldist
 
+    def _calc_rollpitch_reward(self):
+        [r,p,_] = self._env._robot.GetTrueBaseRollPitchYaw()
+        [dr,dp,_] = self._env._robot.GetTrueBaseRollPitchYawRate()
+        # print('rp:',[r,p])
+        # print('drdp:',[dr,dp])
+        # print('Goal Reward:',reward)
+        reward = 0.01*np.exp(-abs(r)) + \
+                    0.01*np.exp(-abs(p)) + \
+                    0.01*np.exp(-abs(dr)) + \
+                    0.01*np.exp(-abs(dp))
+        return reward
     def _load_ref_motions(self, filenames):
         """Load reference motions.
 
