@@ -361,7 +361,7 @@ class ImitationTask(object):
         # reward = self._root_pose_weight * root_pose_reward \
         #          + self._root_velocity_weight * root_velocity_reward
 
-        return self._calc_goal_reward() * self._weight
+        return (self._calc_goal_reward()+self._calc_rollpitch_reward()) * self._weight
 
     def _calc_reward_pose(self):
         """Get the pose reward."""

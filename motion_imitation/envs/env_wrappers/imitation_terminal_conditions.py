@@ -88,7 +88,8 @@ def imitation_terminal_condition(env,
 
   #define path here (ex parabola +/- 1)
   [x_pos,y_pos,z_pos] = root_pos_sim
-  out_of_path = y_pos < (-0.12*x_pos**2+1.20*x_pos)-1 or y_pos > (-0.12*x_pos**2+1.20*x_pos)+1
+  f = -0.07*x_pos**2+0.7*x_pos
+  out_of_path = y_pos < f-1 or y_pos > f+1
 
   done = motion_over \
       or contact_fall \
