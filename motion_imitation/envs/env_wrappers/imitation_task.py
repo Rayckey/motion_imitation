@@ -362,7 +362,7 @@ class ImitationTask(object):
         #          + self._root_velocity_weight * root_velocity_reward
 
         # self.fix_rocky(self._env.robot.quadruped)
-        return self._calc_goal_reward() * self._weight
+        return self._calc_goal_reward() * self._weight + self._calc_rollpitch_reward()
 
 
     def fix_rocky(self, phys_model):
