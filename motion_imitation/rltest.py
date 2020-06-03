@@ -219,7 +219,7 @@ def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv'):
 import envs.env_builder as env_builder
 
 # Define constants (maybe read from robot class/environment later)
-sensor_history_num = 3
+sensor_history_num = 1
 leg_pos_dim = 12
 input_dim_h = 4*sensor_history_num
 input_dim_l = (4+leg_pos_dim)*sensor_history_num

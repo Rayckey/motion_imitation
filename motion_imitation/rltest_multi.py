@@ -30,11 +30,17 @@ class Worker(object):
                  policy_params = None,
                  deltas=None,
                  rollout_length=1000,
-                 delta_std=0.02):
+                 delta_std=0.02,
+                 params = None):
 
         # initialize OpenAI environment for each worker
-        self.env = gym.make(env_name)
-        self.env.seed(env_seed)
+        self.env = env_builder.build_imitation_env(motion_files=[params['motion_file']],
+                                            num_parallel_envs=1,
+                                            mode='train',
+                                            enable_randomizer=False,
+                                            enable_rendering=False)
+        # self.env = gym.make(env_name)
+        # self.env.seed(env_seed)
 
         # each worker gets access to the shared noise table
         # with independent random streams for sampling
@@ -45,7 +51,6 @@ class Worker(object):
             self.policy = LinearPolicy(policy_params)
         else:
             self.policy = HLinearPolicy(policy_params)
-            raise NotImplementedError
 
         self.delta_std = delta_std
         self.rollout_length = rollout_length
@@ -162,7 +167,11 @@ class ARSLearner(object):
         logz.configure_output_dir(logdir)
         logz.save_params(params)
 
-        env = gym.make(env_name)
+        env = env_builder.build_imitation_env(motion_files=[params['motion_file']],
+                                            num_parallel_envs=1,
+                                            mode='train',
+                                            enable_randomizer=False,
+                                            enable_rendering=params['visualize'])
 
         self.timesteps = 0
         self.action_size = env.action_space.shape[0]
@@ -193,7 +202,8 @@ class ARSLearner(object):
                                       policy_params=policy_params,
                                       deltas=deltas_id,
                                       rollout_length=rollout_length,
-                                      delta_std=delta_std) for i in range(num_workers)]
+                                      delta_std=delta_std,
+                                      params = params) for i in range(num_workers)]
 
 
         # initialize policy
@@ -363,15 +373,15 @@ def run_ars(params):
         os.makedirs(monitor_dir)
 
     # INSERT laikago env here
-    env = env_builder.build_imitation_env(motion_files=[args.motion_file],
+    env = env_builder.build_imitation_env(motion_files=[params['motion_file']],
                                             num_parallel_envs=1,
                                             mode='train',
                                             enable_randomizer=False,
-                                            enable_rendering=args.visualize)
+                                            enable_rendering=params['visualize'])
     # env = gym.make(params['env_name'])
     # env = wrappers.Monitor(env, monitor_dir, force=True)
     ob_dim = env.observation_space.shape[0] #should be 4+4+12+33
-    ob_dim_h = 4*sensor_history_num
+    ob_dim_h = 4*3
     ac_dim = env.action_space.shape[0] #should be 12+33
 
     # set policy parameters. Possible filters: 'MeanStdFilter' for v2, 'NoFilter' for v1.
@@ -382,7 +392,7 @@ def run_ars(params):
                    'history_size':3,
                    'latent_dim':2,
                    'ob_h_dim':ob_dim_h,
-                   'ob_l_dim':nb_inputs-input_dim_h}
+                   'ob_l_dim':ob_dim-ob_dim_h}
 
     ARS = ARSLearner(env_name=params['env_name'],
                      policy_params=policy_params,
@@ -425,8 +435,8 @@ if __name__ == '__main__':
     parser.add_argument('--filter', type=str, default='MeanStdFilter')
 
     #additional
-    arg_parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
-    arg_parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
+    parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
+    parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')
