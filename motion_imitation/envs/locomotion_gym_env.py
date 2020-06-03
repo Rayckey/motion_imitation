@@ -374,18 +374,9 @@ class LocomotionGymEnv(gym.Env):
 
     return False
 
-  #modify reward with roll pitch yaw considerations
   def _reward(self):
     if self._task:
-        reward = self._task(self)
-        [r,p,_] = self._robot.GetBaseRollPitchYaw()
-        [dr,dp,_] = self._robot.GetBaseRollPitchYawRate()
-        # print('rp:',[r,p])
-        # print('drdp:',[dr,dp])
-        # print('Goal Reward:',reward)
-        reward = reward - 0.01*abs(r) - 0.01*abs(p) - 0.0005*abs(dr) - 0.0005*abs(dp)
-        # print('Total Reward:',reward)
-        return reward
+        return self._task(self)
     return 0
 
   def _get_observation(self):

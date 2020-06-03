@@ -154,6 +154,7 @@ class SimpleTGGroup(object):
         res = np.array([np.pi / 16.0, 0.02, 0.1, 0.1, 0.05, 0.025, 0.1, np.pi, 0.2])
 
 
+
         if self._is_touting == 0:
             res[7] = np.pi
         else:
@@ -167,13 +168,13 @@ class SimpleTGGroup(object):
 
     def get_default_lower_bound(self, leg_id):
 
-        res = np.array([np.pi / 16.0, 0.05, 0.1, 0.1, 0.05, 0.025, 0.1, np.pi, 0.1])
+        res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
 
         if self._is_touting == 0:
-            res[7] = np.pi
-        else:
             res[7] = np.pi / 2
-            # res[8] = 0.2
+        else:
+            res[7] = np.pi / 4
+            res[8] = 0.2
 
         res *= -1
 
@@ -181,7 +182,6 @@ class SimpleTGGroup(object):
         # res = np.zeros(9)
 
         return res
-
 
     def _update_phi_t(self, f_tg, current_time=None):
 

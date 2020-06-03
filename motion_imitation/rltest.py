@@ -12,7 +12,7 @@ import gym.wrappers as wrappers
 class Hp():
   def __init__(self,
                 nb_steps = 10000,
-                episode_length = 1000,
+                episode_length = 2000,
                 learning_rate = 0.02,
                 nb_directions = 16,
                 nb_best_directions = 16,
