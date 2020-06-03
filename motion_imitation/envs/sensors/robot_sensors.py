@@ -88,7 +88,7 @@ class MinitaurLegPoseSensor(sensor.BoxSpaceSensor):
 
   def __init__(self,
                num_motors: int,
-               noisy_reading: bool = True,
+               noisy_reading: bool = False,
                observe_sine_cosine: bool = False,
                lower_bound: _FLOAT_OR_ARRAY = -np.pi,
                upper_bound: _FLOAT_OR_ARRAY = np.pi,
