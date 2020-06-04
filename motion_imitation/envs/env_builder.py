@@ -126,7 +126,7 @@ def build_other_env(motion_files, num_parallel_envs, mode,
     init_lg_param = trajectory_generator.init_lg_param
     # print(" initial tg parameters is this")
     # print(init_lg_param)
-    init_lg_param = np.concatenate([np.zeros([12]), init_lg_param[1:]])
+    init_lg_param =  init_lg_param[1:]
 
     tg_init_position = trajectory_generator.get_action(current_time=0, input_action=init_lg_param)
 
