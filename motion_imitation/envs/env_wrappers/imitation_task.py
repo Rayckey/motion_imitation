@@ -59,7 +59,8 @@ class ImitationTask(object):
                  perturb_init_state_prob=0.0,
                  tar_obs_noise=None,
                  draw_ref_model_alpha=0.5,
-                 goal=np.array([10, 0, 0.48])):
+                 goal=np.array([10, 0, 0.48]),
+                 tg_init_position=np.zeros([12])):
         """Initializes the task.
 
     Args:
@@ -166,6 +167,7 @@ class ImitationTask(object):
         self._r_velocity = 0.1
         self._r_time = 0
         self._first_time = None
+        self._tg_init_position = tg_init_position
         #########################################
         self._goal = goal
         return
@@ -377,7 +379,7 @@ class ImitationTask(object):
         # root_vel = motion.get_frame_root_vel(vel)
         # root_ang_vel = motion.get_frame_root_ang_vel(vel)
 
-        root_pos_ref = np.array([self._get_motion_time() * self._r_velocity, 0, 0.44135117])
+        root_pos_ref = np.array([self._get_motion_time() * self._r_velocity, 0, 0.38])
         root_rot_ref = np.array([-0.5, -0.5, -0.5, -0.5])
 
         root_pos_vel = np.array([0,0,0])
@@ -829,9 +831,16 @@ class ImitationTask(object):
       perturb_state: A flag for enabling perturbations to be applied to state.
     """
         pose = self._ref_pose
-        vel = self._ref_vel
-        if perturb_state:
-            pose, vel = self._apply_state_perturb(pose, vel)
+        # vel = self._ref_vel
+        # if perturb_state:
+        #     pose, vel = self._apply_state_perturb(pose, vel)
+
+        # print("init pose and vel is this")
+        # print(pose)
+        # print(vel)
+        pose[3] = 0.38
+        pose[7:] = self._tg_init_position
+        vel = np.zeros([18])
 
         self._set_state(self._env.robot.quadruped, pose, vel)
         self._env.robot.ReceiveObservation()

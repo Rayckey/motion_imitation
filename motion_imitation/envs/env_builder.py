@@ -26,7 +26,7 @@ from envs.sensors import sensor_wrappers
 from envs.sensors import robot_sensors
 from envs.utilities import controllable_env_randomizer_from_config
 from robots import laikago
-
+import numpy as np
 
 def build_imitation_env(motion_files, num_parallel_envs, mode,
                         enable_randomizer, enable_rendering):
@@ -116,11 +116,26 @@ def build_other_env(motion_files, num_parallel_envs, mode,
             wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
     ]
 
+
+
+    # Look at this, this is the TG now
+    trajectory_generator = simple_TG_group.SimpleTGGroup(
+        action_limit=0.4,
+        init_lg_param=None, is_touting=2, init_f_tg=2)
+
+    init_lg_param = trajectory_generator.init_lg_param
+    # print(" initial tg parameters is this")
+    # print(init_lg_param)
+    init_lg_param = np.concatenate([np.zeros([12]), init_lg_param[1:]])
+
+    tg_init_position = trajectory_generator.get_action(current_time=0, input_action=init_lg_param)
+
+
     task = imitation_task.ImitationTask(ref_motion_filenames=motion_files,
                                         enable_cycle_sync=True,
                                         tar_frame_steps=[1, 2, 10, 30],
                                         ref_state_init_prob=0.9,
-                                        warmup_time=0.25)
+                                        warmup_time=0.25,tg_init_position=tg_init_position)
 
     randomizers = []
     if enable_randomizer:
@@ -131,13 +146,9 @@ def build_other_env(motion_files, num_parallel_envs, mode,
                                               env_randomizers=randomizers, robot_sensors=sensors, task=task)
 
     env = observation_dictionary_to_array_wrapper.ObservationDictionaryToArrayWrapper(env)
-    # env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
-    #                                                                      trajectory_generator=simple_openloop.LaikagoPoseOffsetGenerator(action_limit=laikago.UPPER_BOUND))
 
     env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
-                                                                         trajectory_generator=simple_TG_group.SimpleTGGroup(
-                                                                             action_limit=0.2,
-                                                                             init_lg_param=None, is_touting=2, init_f_tg=2))
+                                                                         trajectory_generator=trajectory_generator)
 
     if mode == "test":
         curriculum_episode_length_start = curriculum_episode_length_end
