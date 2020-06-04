@@ -127,14 +127,14 @@ class SimpleTGGroup(object):
         else:
             if self._is_touting == 1:
                 if leg_id == 0 or leg_id == 1:
-                    res[7] = np.pi
+                    res[7] = np.pi + np.pi/4
                 else:
-                    res[7] = 0
+                    res[7] = np.pi/4
             if self._is_touting == 2:
                 if leg_id == 0 or leg_id == 3:
-                    res[7] = 0
+                    res[7] = np.pi/4
                 else:
-                    res[7] = np.pi
+                    res[7] = np.pi + np.pi/4
 
         # set hip offset
         if leg_id == 0 or leg_id == 2:
