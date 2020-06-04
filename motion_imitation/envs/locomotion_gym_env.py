@@ -387,13 +387,13 @@ class LocomotionGymEnv(gym.Env):
     last_pos = self._last_action[:12]
     old_pos = self._last_last_action[:12]
     reward = np.exp(- np.linalg.norm(last_pos-old_pos, ord=1))
-    return reward*0.001
+    return reward*0.005
 
   def _calc_offset_abs_reward(self):
 
     last_pos = self._last_action[:12]
     reward = np.exp(- np.linalg.norm(last_pos, ord=1))
-    return reward*0.001
+    return reward*0.005
 
   def _calc_tg_diff_reward(self):
 
