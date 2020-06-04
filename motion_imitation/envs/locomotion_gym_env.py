@@ -223,6 +223,7 @@ class LocomotionGymEnv(gym.Env):
                                                        self._camera_pitch,
                                                        [0, 0, 0])
     self._last_action = np.zeros(self.action_space.shape)
+    self._last_last_action = np.zeros(self.action_space.shape)
 
     if self._is_render:
       self._pybullet_client.configureDebugVisualizer(
@@ -263,6 +264,7 @@ class LocomotionGymEnv(gym.Env):
       ValueError: The magnitude of actions is out of bounds.
     """
     self._last_base_position = self._robot.GetBasePosition()
+    self._last_last_action = self._last_action
     self._last_action = action
 
     if self._is_render:
@@ -376,8 +378,35 @@ class LocomotionGymEnv(gym.Env):
 
   def _reward(self):
     if self._task:
-        return self._task(self)
+        return self._task(self) + self._calc_offset_diff_reward() + self._calc_offset_abs_reward() + \
+               self._calc_tg_diff_reward() + self._calc_tg_abs_reward()
     return 0
+
+  def _calc_offset_diff_reward(self):
+
+    last_pos = self._last_action[:12]
+    old_pos = self._last_last_action[:12]
+    reward = np.exp(- np.linalg.norm(last_pos-old_pos, ord=1))
+    return reward*0.01
+
+  def _calc_offset_abs_reward(self):
+
+    last_pos = self._last_action[:12]
+    reward = np.exp(- np.linalg.norm(last_pos, ord=1))
+    return reward*0.01
+
+  def _calc_tg_diff_reward(self):
+
+    last_param = self._last_action[12:]
+    old_param = self._last_last_action[12:]
+    reward = np.exp(- np.linalg.norm(last_param-old_param, ord=1))
+    return reward*0.1
+
+  def _calc_tg_abs_reward(self):
+
+    last_param = self._last_action[12:]
+    reward = np.exp(- np.linalg.norm(last_param, ord=1))
+    return reward*0.1
 
   def _get_observation(self):
     """Get observation of this environment from a list of sensors.
