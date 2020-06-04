@@ -376,8 +376,16 @@ class LocomotionGymEnv(gym.Env):
 
   def _reward(self):
     if self._task:
-        return self._task(self)
+        return self._task(self)+self._calc_offset_reward()
+
     return 0
+
+
+  def _calc_offset_reward(self):
+
+     reward = np.exp(- (np.linalg.norm([self._last_action])**2) )
+
+     return reward * 0.01
 
   def _get_observation(self):
     """Get observation of this environment from a list of sensors.

@@ -607,6 +607,9 @@ class ImitationTask(object):
                     0.01*np.exp(-abs(dr)) + \
                     0.01*np.exp(-abs(dp))
         return reward
+
+
+
     def _load_ref_motions(self, filenames):
         """Load reference motions.
 

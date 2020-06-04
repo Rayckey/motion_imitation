@@ -120,7 +120,7 @@ def build_other_env(motion_files, num_parallel_envs, mode,
 
     # Look at this, this is the TG now
     trajectory_generator = simple_TG_group.SimpleTGGroup(
-        action_limit=0.6,
+        action_limit=1.0,
         init_lg_param=None, is_touting=2, init_f_tg=2)
 
     # init_lg_param = trajectory_generator.init_lg_param
