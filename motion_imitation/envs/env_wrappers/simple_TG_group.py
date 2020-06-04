@@ -63,12 +63,14 @@ class SimpleTGGroup(object):
             lg_param_high = np.concatenate([lg_param_high, self.get_default_upper_bound(leg_num)])
             lg_param_low = np.concatenate([lg_param_low, self.get_default_lower_bound(leg_num)])
 
-        action_low = np.concatenate([-action_high, lg_param_low])
-        action_high = np.concatenate([action_high, lg_param_high])
+        # action_low = np.concatenate([-action_high, lg_param_low])
+        # action_high = np.concatenate([action_high, lg_param_high])
 
         # print(action_high)
 
-        self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
+        # self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
+
+        self.action_space = spaces.Box(-action_high, action_high, dtype=np.float32)
 
         # obs_space_upper = np.ones([4])*np.pi*2.0
         # self.observation_space = spaces.Box(-obs_space_upper, obs_space_upper, dtype=np.float32)
@@ -217,7 +219,9 @@ class SimpleTGGroup(object):
 
         input_action = np.clip(input_action, self.action_space.low, self.action_space.high)
 
-        input_param = np.concatenate([np.zeros([1]), input_action[num_joint:]]) + self.init_lg_param
+        # input_param = np.concatenate([np.zeros([1]), input_action[num_joint:]]) + self.init_lg_param
+
+        input_param = self.init_lg_param
 
         for leg_num in range(len(self._tg)):
             self._tg[leg_num].unpack_params(self.unpack_params(params=input_param, key=leg_num))

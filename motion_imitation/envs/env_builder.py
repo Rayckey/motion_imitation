@@ -120,16 +120,17 @@ def build_other_env(motion_files, num_parallel_envs, mode,
 
     # Look at this, this is the TG now
     trajectory_generator = simple_TG_group.SimpleTGGroup(
-        action_limit=0.4,
+        action_limit=0.6,
         init_lg_param=None, is_touting=2, init_f_tg=2)
 
-    init_lg_param = trajectory_generator.init_lg_param
-    # print(" initial tg parameters is this")
-    # print(init_lg_param)
-    init_lg_param = np.concatenate([np.zeros([12]), init_lg_param[1:]])
+    # init_lg_param = trajectory_generator.init_lg_param
+    # # print(" initial tg parameters is this")
+    # # print(init_lg_param)
+    # init_lg_param = np.concatenate([np.zeros([12]), init_lg_param[1:]])
+    #
+    # tg_init_position = trajectory_generator.get_action(current_time=0, input_action=init_lg_param)
 
-    tg_init_position = trajectory_generator.get_action(current_time=0, input_action=init_lg_param)
-
+    tg_init_position = trajectory_generator.get_action(current_time=0, input_action=np.zeros([12]))
 
     task = imitation_task.ImitationTask(ref_motion_filenames=motion_files,
                                         enable_cycle_sync=True,
