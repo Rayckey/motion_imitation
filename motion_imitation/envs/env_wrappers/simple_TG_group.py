@@ -55,7 +55,7 @@ class SimpleTGGroup(object):
                 init_lg_param = np.concatenate([init_lg_param, self.get_default_params(leg_num)])
             print(init_lg_param)
 
-        self._init_lg_param = init_lg_param
+        self.init_lg_param = init_lg_param
 
         lg_param_high = self.get_default_upper_bound(0)
         lg_param_low = self.get_default_lower_bound(0)
@@ -69,6 +69,9 @@ class SimpleTGGroup(object):
         # print(action_high)
 
         self.action_space = spaces.Box(action_low, action_high, dtype=np.float32)
+
+        # obs_space_upper = np.ones([4])*np.pi*2.0
+        # self.observation_space = spaces.Box(-obs_space_upper, obs_space_upper, dtype=np.float32)
 
         # print("Action space shape is ")
         # print(self.action_space.shape)
@@ -93,7 +96,13 @@ class SimpleTGGroup(object):
 
         self._tg = [fr_tg, fl_tg, rr_tg, rl_tg]
 
+
+        # ====== debug information
+        self._counter = 0
+        # ========================
+
     def reset(self):
+        self._counter = 0
         pass
 
     def get_default_params(self, leg_id):
@@ -110,7 +119,7 @@ class SimpleTGGroup(object):
         # self._delta_phi = params[7]
         # self._beta = params[8]
 
-        res = np.array([np.pi / 10.0, 0.05, 0, 0, 0, -0.275, 0.8, 0, 0.3])
+        res = np.array([np.pi / 10.0, 0.08, 0, 0, 0, -0.275, 0.8, 0, 0.3])
 
         # set touting phase change
         if self._is_touting == 0:
@@ -142,14 +151,15 @@ class SimpleTGGroup(object):
         # f_tg = np.array([1.5])
         # indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
 
-        res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
+        res = np.array([np.pi / 20.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.1, np.pi, 0.2])
+
 
 
         if self._is_touting == 0:
-            res[7] = np.pi / 2
+            res[7] = np.pi
         else:
             res[7] = np.pi / 4
-            res[8] = 0.2
+            # res[8] = 0.2
 
         # set zeros, use this when testing
         # res = np.zeros(9)
@@ -158,34 +168,19 @@ class SimpleTGGroup(object):
 
     def get_default_lower_bound(self, leg_id):
 
-        res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
+        res = np.array([np.pi / 16.0, 0.04, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
 
         if self._is_touting == 0:
-            res[7] = np.pi / 2
+            res[7] = np.pi
         else:
-            res[7] = np.pi / 4
-            res[8] = 0.2
+            res[7] = np.pi/4
+            # res[8] = 0.2
 
         res *= -1
 
         # set zeros, use this when testing
         # res = np.zeros(9)
 
-        return res
-
-    def get_default_lower_bound(self, leg_id):
-
-        res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
-
-        if self._is_touting == 0:
-            res[7] = np.pi / 2
-        else:
-            res[7] = np.pi / 4
-            res[8] = 0.2
-
-        res *= -1
-
-        # res = np.zeros(9)
         return res
 
     def _update_phi_t(self, f_tg, current_time=None):
@@ -220,9 +215,9 @@ class SimpleTGGroup(object):
         # retrieve from TG
         # print(self._f_tg)
 
-        input_action = np.clip(input_action,self.action_space.low,self.action_space.high)
+        input_action = np.clip(input_action, self.action_space.low, self.action_space.high)
 
-        input_param = np.concatenate([self._f_tg, input_action[num_joint:]]) + self._init_lg_param
+        input_param = np.concatenate([np.zeros([1]), input_action[num_joint:]]) + self.init_lg_param
 
         for leg_num in range(len(self._tg)):
             self._tg[leg_num].unpack_params(self.unpack_params(params=input_param, key=leg_num))
@@ -247,8 +242,13 @@ class SimpleTGGroup(object):
     def get_observation(self, input_observation):
         """Get the trajectory generator's observation."""
 
-        # return np.concatenate([input_observation, np.array([self._phi_t])])
-        return input_observation
+        phi_leg = np.zeros([4])
+        for leg_num in range(0,4):
+            phi_leg[leg_num] = self._tg[0].phi_leg
+
+        return np.concatenate([input_observation, phi_leg])
+
+        # return input_observation
 
     def unpack_params(self, params, key=-1):
 

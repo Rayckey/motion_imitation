@@ -64,24 +64,24 @@ def imitation_terminal_condition(env,
         contact_fall = True
         break
 
-  root_pos_ref, root_rot_ref = pyb.getBasePositionAndOrientation(
-      task.get_ref_model())
+  # root_pos_ref, root_rot_ref = pyb.getBasePositionAndOrientation(
+  #     task.get_ref_model())
   root_pos_sim, root_rot_sim = pyb.getBasePositionAndOrientation(
       env.robot.quadruped)
 
-  root_pos_diff = np.array(root_pos_ref) - np.array(root_pos_sim)
-  root_pos_fail = (
-      root_pos_diff.dot(root_pos_diff) >
-      dist_fail_threshold * dist_fail_threshold)
-
-  root_rot_diff = transformations.quaternion_multiply(
-      np.array(root_rot_ref),
-      transformations.quaternion_conjugate(np.array(root_rot_sim)))
-  _, root_rot_diff_angle = pose3d.QuaternionToAxisAngle(
-      root_rot_diff)
-  root_rot_diff_angle = motion_util.normalize_rotation_angle(
-      root_rot_diff_angle)
-  root_rot_fail = (np.abs(root_rot_diff_angle) > rot_fail_threshold)
+  # root_pos_diff = np.array(root_pos_ref) - np.array(root_pos_sim)
+  # root_pos_fail = (
+  #     root_pos_diff.dot(root_pos_diff) >
+  #     dist_fail_threshold * dist_fail_threshold)
+  #
+  # root_rot_diff = transformations.quaternion_multiply(
+  #     np.array(root_rot_ref),
+  #     transformations.quaternion_conjugate(np.array(root_rot_sim)))
+  # _, root_rot_diff_angle = pose3d.QuaternionToAxisAngle(
+  #     root_rot_diff)
+  # root_rot_diff_angle = motion_util.normalize_rotation_angle(
+  #     root_rot_diff_angle)
+  # root_rot_fail = (np.abs(root_rot_diff_angle) > rot_fail_threshold)
 
   #check if at goal by distance to goal
   at_goal = np.linalg.norm(root_pos_sim-goal) < dist_to_goal
@@ -91,11 +91,12 @@ def imitation_terminal_condition(env,
   f = -0.07*x_pos**2+0.7*x_pos
   out_of_path = y_pos < f-1 or y_pos > f+1
 
-  done = motion_over \
-      or contact_fall \
-      or root_pos_fail \
-      or root_rot_fail \
-      or at_goal \
-      or out_of_path
+  done = contact_fall \
+        or at_goal \
+        or out_of_path
+      # or motion_over \
+      # or root_pos_fail \
+      # or root_rot_fail \
+
 
   return done

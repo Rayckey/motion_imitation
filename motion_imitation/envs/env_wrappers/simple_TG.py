@@ -55,7 +55,7 @@ class SimpleTG(object):
 
         # from upstream untunable
         self._phi_t = 0
-        self._phi_leg = 0
+        self.phi_leg = 0
         self._t_p = 0
 
         self._l_hip = 0.054
@@ -172,19 +172,19 @@ class SimpleTG(object):
         #     print('_phi_t')
         #     print(self._phi_t)
 
-        self._phi_leg = self._update_phi_leg(phi_t=self._phi_t, phi_diff=self._delta_phi)
+        self.phi_leg = self._update_phi_leg(phi_t=self._phi_t, phi_diff=self._delta_phi)
 
         # if self._leg_id == 0:
-        #     print('_phi_leg')
-        #     print(self._phi_leg)
+        #     print('phi_leg')
+        #     print(self.phi_leg)
 
-        self._t_p = self._compute_t_prime(phi_leg=self._phi_leg, beta=self._beta)
+        self._t_p = self._compute_t_prime(phi_leg=self.phi_leg, beta=self._beta)
 
         # if self._leg_id == 0:
         #     print('_t_p')
         #     print(self._t_p)
 
-        h_leg = self._assemble_leg_height(phi_leg=self._phi_leg, beta=self._beta, k_sle=self._k_sle, t_p=self._t_p,
+        h_leg = self._assemble_leg_height(phi_leg=self.phi_leg, beta=self._beta, k_sle=self._k_sle, t_p=self._t_p,
                                           Ae=self._Ae, h_tg=self._h_tg)
 
         # if self._leg_id == 0:

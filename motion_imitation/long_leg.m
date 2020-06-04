@@ -41,32 +41,25 @@ u_tg_3 = [Cs + alpha_tg*cos(t_prime(3,:));h_tg(3,:) + Ae*sin(t_prime(3,:)) + the
 u_tg_4 = [Cs + alpha_tg*cos(t_prime(4,:));h_tg(4,:) + Ae*sin(t_prime(4,:)) + theta*cos(t_prime(4,:))];
 figure(1)
 hold on
-axis([-0.5 0.5 0.5 1.5]) 
+axis([-0.5 0.5 0.5 1.5])
 
 for i = 1:length(t_prime)
     subplot(2,2,1)
     hold on
-    axis([-0.5 0.5 0.5 1.5]) 
+    axis([-0.5 0.5 0.5 1.5])
     plot(tan(u_tg_1(1,i))*Ae,u_tg_1(2,i),'b*')
     subplot(2,2,2)
-    axis([-0.5 0.5 0.5 1.5]) 
+    axis([-0.5 0.5 0.5 1.5])
     plot(tan(u_tg_2(1,i))*Ae,u_tg_2(2,i),'b*')
     hold on
     subplot(2,2,3)
-    axis([-0.5 0.5 0.5 1.5]) 
+    axis([-0.5 0.5 0.5 1.5])
     plot(tan(u_tg_3(1,i))*Ae,u_tg_3(2,i),'b*')
     hold on
-    
+
     subplot(2,2,4)
-    axis([-0.5 0.5 0.5 1.5]) 
+    axis([-0.5 0.5 0.5 1.5])
     plot(tan(u_tg_4(1,i))*Ae,u_tg_4(2,i),'b*')
     hold on
     pause(0.01)
 end
-    
-
-            
-            
-            
-                
-    
