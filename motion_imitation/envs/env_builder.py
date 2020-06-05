@@ -53,7 +53,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
     sensors = [
         sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=hist),
         sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=hist),
-        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=hist)
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=hist),
         sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=hist)
     ]
 
