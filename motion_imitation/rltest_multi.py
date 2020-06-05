@@ -35,10 +35,12 @@ class Worker(object):
 
         # initialize OpenAI environment for each worker
         self.env = env_builder.build_imitation_env(motion_files=[params['motion_file']],
-                                            num_parallel_envs=1,
-                                            mode='train',
-                                            enable_randomizer=False,
-                                            enable_rendering=False)
+                                                num_parallel_envs=1,
+                                                mode='train',
+                                                enable_randomizer=False,
+                                                enable_rendering=params['visualize'],
+                                                action_lim=params['actionlim'],
+                                                curr_steps=params['currsteps'])
         # self.env = gym.make(env_name)
         # self.env.seed(env_seed)
 
@@ -106,7 +108,7 @@ class Worker(object):
 
                 # for evaluation we do not shift the rewards (shift = 0) and we use the
                 # default rollout length (1000 for the MuJoCo locomotion tasks)
-                reward, r_steps = self.rollout(shift = 0., rollout_length = self.env.spec.timestep_limit)
+                reward, r_steps = self.rollout(shift = 0., rollout_length = self.rollout_length)
                 rollout_rewards.append(reward)
 
             else:
@@ -168,11 +170,12 @@ class ARSLearner(object):
         logz.save_params(params)
 
         env = env_builder.build_imitation_env(motion_files=[params['motion_file']],
-                                            num_parallel_envs=1,
-                                            mode='train',
-                                            enable_randomizer=False,
-                                            enable_rendering=params['visualize'])
-
+                                                num_parallel_envs=1,
+                                                mode='train',
+                                                enable_randomizer=False,
+                                                enable_rendering=params['visualize'],
+                                                action_lim=params['actionlim'],
+                                                curr_steps=params['currsteps'])
         self.timesteps = 0
         self.action_size = env.action_space.shape[0]
         self.ob_size = env.observation_space.shape[0]
@@ -319,11 +322,11 @@ class ARSLearner(object):
             print('iter ', i,' done')
 
             # record statistics every 10 iterations
-            if ((i + 1) % 10 == 0):
+            if ((i + 1) % self.params['saveniters'] == 0):
 
                 rewards = self.aggregate_rollouts(num_rollouts = 100, evaluate = True)
                 w = ray.get(self.workers[0].get_weights_plus_stats.remote())
-                np.savez(self.logdir + "/HPolicy", w)
+                np.savez(self.logdir + "/HPolicy_" + (i+1), w)
 
                 print(sorted(self.params.items()))
                 logz.log_tabular("Time", time.time() - start)
@@ -377,7 +380,9 @@ def run_ars(params):
                                             num_parallel_envs=1,
                                             mode='train',
                                             enable_randomizer=False,
-                                            enable_rendering=params['visualize'])
+                                            enable_rendering=params['visualize'],
+                                            action_lim=params['actionlim'],
+                                            curr_steps=params['currsteps'])
     # env = gym.make(params['env_name'])
     # env = wrappers.Monitor(env, monitor_dir, force=True)
     ob_dim = env.observation_space.shape[0] #should be 4+4+12+33
@@ -415,13 +420,13 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--env_name', type=str, default='HalfCheetah-v1')
-    parser.add_argument('--n_iter', '-n', type=int, default=1000)
+    parser.add_argument('--n_iter', '-n', type=int, default=1000) #number of ars batch iterations
     parser.add_argument('--n_directions', '-nd', type=int, default=8)
     parser.add_argument('--deltas_used', '-du', type=int, default=8)
     parser.add_argument('--step_size', '-s', type=float, default=0.02)
     parser.add_argument('--delta_std', '-std', type=float, default=.03)
-    parser.add_argument('--n_workers', '-e', type=int, default=18)
-    parser.add_argument('--rollout_length', '-r', type=int, default=1000)
+    parser.add_argument('--n_workers', '-e', type=int, default=8)
+    parser.add_argument('--rollout_length', '-r', type=int, default=1000) #episode length
 
     # for Swimmer-v1 and HalfCheetah-v1 use shift = 0
     # for Hopper-v1, Walker2d-v1, and Ant-v1 use shift = 1
@@ -437,6 +442,9 @@ if __name__ == '__main__':
     #additional
     parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
     parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
+    parser.add_argument("--actionlim", dest="actionlim", type=float, default=0.2)
+    parser.add_argument("--currsteps", dest="currsteps", type=int, default=0)
+    parser.add_argument("--saveniters", dest="saveniters", type=int, default=10)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')
