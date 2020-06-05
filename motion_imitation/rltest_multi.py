@@ -322,7 +322,7 @@ class ARSLearner(object):
             print('iter ', i,' done')
 
             # record statistics every 10 iterations
-            if ((i + 1) % 10 == 0):
+            if ((i + 1) % self.params['saveniters'] == 0):
 
                 rewards = self.aggregate_rollouts(num_rollouts = 100, evaluate = True)
                 w = ray.get(self.workers[0].get_weights_plus_stats.remote())
@@ -444,6 +444,7 @@ if __name__ == '__main__':
     parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
     parser.add_argument("--actionlim", dest="actionlim", type=float, default=0.2)
     parser.add_argument("--currsteps", dest="currsteps", type=int, default=0)
+    parser.add_argument("--saveniters", dest="saveniters", type=int, default=10)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')
