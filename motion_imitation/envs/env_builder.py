@@ -54,13 +54,14 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
         sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=1),
         sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=1),
         sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=1)
+        #, sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
     ]
 
 
 
     # Look at this, this is the TG now
     trajectory_generator = simple_TG_group.SimpleTGGroup(
-        action_limit=0.1,
+        action_limit=0.2,
         init_lg_param=None, is_touting=2, init_f_tg=2)
 
     init_lg_param = trajectory_generator.init_lg_param
@@ -100,7 +101,6 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
                                                     num_parallel_envs=num_parallel_envs)
     return env
 
-
 def build_other_env(motion_files, num_parallel_envs, mode,
                         enable_randomizer, enable_rendering):
     assert len(motion_files) > 0
@@ -136,7 +136,7 @@ def build_other_env(motion_files, num_parallel_envs, mode,
 
     # Look at this, this is the TG now
     trajectory_generator = simple_TG_group.SimpleTGGroup(
-        action_limit=0.4,
+        action_limit=1.0,
         init_lg_param=None, is_touting=2, init_f_tg=2)
 
     init_lg_param = trajectory_generator.init_lg_param

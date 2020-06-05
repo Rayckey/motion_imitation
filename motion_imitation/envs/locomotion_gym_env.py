@@ -391,13 +391,13 @@ class LocomotionGymEnv(gym.Env):
     last_param = self._last_action[12:]
     old_param = self._last_last_action[12:]
     reward = np.exp(- np.linalg.norm(last_param-old_param, ord=1))
-    return reward*0.005
+    return reward*0.01
 
   def _calc_tg_abs_reward(self):
 
     last_param = self._last_action[12:]
     reward = np.exp(- np.linalg.norm(last_param, ord=1))
-    return reward*0.005
+    return reward*0.01
 
   def _get_observation(self):
     """Get observation of this environment from a list of sensors.

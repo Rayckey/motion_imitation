@@ -151,37 +151,36 @@ class SimpleTGGroup(object):
         # f_tg = np.array([1.5])
         # indie = np.array([np.pi / 4.0, 0.05, np.pi / 4.0, 0.3, 0.1, 0.05, 0.5, np.pi / 4.0, 0.2])
 
-        res = np.array([np.pi / 20.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.1, np.pi, 0.2])
+        res = np.array([np.pi / 16.0, 0.01, 0.1, 0.1, 0.05, 0.025, 0.1, np.pi, 0.2])
 
 
 
         if self._is_touting == 0:
             res[7] = np.pi
         else:
-            res[7] = np.pi / 4
+            res[7] = np.pi / 2
             # res[8] = 0.2
 
         # set zeros, use this when testing
         # res = np.zeros(9)
-        res = np.array([0, 0.01, 0, 0, 0, 0.025, 0, 0, 0.2])
+
         return res
 
     def get_default_lower_bound(self, leg_id):
 
         res = np.array([np.pi / 16.0, 0.04, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
 
-
         if self._is_touting == 0:
             res[7] = np.pi
         else:
-            res[7] = np.pi/4
+            res[7] = np.pi/2
             # res[8] = 0.2
-        
+
         res *= -1
 
         # set zeros, use this when testing
         # res = np.zeros(9)
-        res = -np.array([0, 0.01, 0, 0, 0, 0.025, 0, 0, 0.2])
+
         return res
 
     def _update_phi_t(self, f_tg, current_time=None):

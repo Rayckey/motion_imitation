@@ -34,7 +34,7 @@ class ImitationTask(object):
     """Imitation reference motion task."""
 
     def __init__(self,
-                 weight=2.0,
+                 weight=1.0,
                  terminal_condition=imitation_terminal_conditions.imitation_terminal_condition,
                  ref_motion_filenames=None,
                  enable_cycle_sync=True,
@@ -586,17 +586,18 @@ class ImitationTask(object):
         root_pos_sim = self._get_sim_base_position()
         goaldist = np.linalg.norm(root_pos_sim-self._goal)
         prevdist = np.linalg.norm(self._last_base_position-self._goal)
-        # print('Goal Reward:',prevdist-goaldist)
         return prevdist-goaldist
 
     def _calc_rollpitch_reward(self):
         [r,p,_] = self._env._robot.GetTrueBaseRollPitchYaw()
         [dr,dp,_] = self._env._robot.GetTrueBaseRollPitchYawRate()
-        reward = 0.005*np.exp(-4*abs(r)) + \
-                    0.005*np.exp(-6*abs(p)) + \
-                    0.005*np.exp(-5*abs(dr)) + \
-                    0.005*np.exp(-3*abs(dp))
-        # print("rp reward:",reward)
+        # print('rp:',[r,p])
+        # print('drdp:',[dr,dp])
+        # print('Goal Reward:',reward)
+        reward = 0.01*np.exp(-abs(r)) + \
+                    0.01*np.exp(-abs(p)) + \
+                    0.01*np.exp(-abs(dr)) + \
+                    0.01*np.exp(-abs(dp))
         return reward
     def _load_ref_motions(self, filenames):
         """Load reference motions.
