@@ -41,7 +41,7 @@ class ImitationWrapperEnv(object):
 
     self._episode_length_start = episode_length_start
     self._episode_length_end = episode_length_end
-    self._curriculum_steps = 0 # int(np.ceil(curriculum_steps / num_parallel_envs))
+    self._curriculum_steps = curriculum_steps
     self._total_step_count = 0
 
     if self._enable_curriculum():
@@ -67,7 +67,8 @@ class ImitationWrapperEnv(object):
     observation = self._modify_observation(original_observation)
     terminated = done
 
-    # done |= (self.env_step_counter >= self._max_episode_steps)
+    if self.curriculum_steps > 0:
+        done |= (self.env_step_counter >= self._max_episode_steps)
 
     if not done:
       self._total_step_count += 1

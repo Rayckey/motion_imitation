@@ -39,7 +39,8 @@ class Worker(object):
                                                 mode='train',
                                                 enable_randomizer=False,
                                                 enable_rendering=params['visualize'],
-                                                action_lim=params['actionlim'])
+                                                action_lim=params['actionlim'],
+                                                curr_steps=params['currsteps'])
         # self.env = gym.make(env_name)
         # self.env.seed(env_seed)
 
@@ -173,7 +174,8 @@ class ARSLearner(object):
                                                 mode='train',
                                                 enable_randomizer=False,
                                                 enable_rendering=params['visualize'],
-                                                action_lim=params['actionlim'])
+                                                action_lim=params['actionlim'],
+                                                curr_steps=params['currsteps'])
         self.timesteps = 0
         self.action_size = env.action_space.shape[0]
         self.ob_size = env.observation_space.shape[0]
@@ -379,7 +381,8 @@ def run_ars(params):
                                             mode='train',
                                             enable_randomizer=False,
                                             enable_rendering=params['visualize'],
-                                            action_lim=params['actionlim'])
+                                            action_lim=params['actionlim'],
+                                            curr_steps=params['currsteps'])
     # env = gym.make(params['env_name'])
     # env = wrappers.Monitor(env, monitor_dir, force=True)
     ob_dim = env.observation_space.shape[0] #should be 4+4+12+33
@@ -417,13 +420,13 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--env_name', type=str, default='HalfCheetah-v1')
-    parser.add_argument('--n_iter', '-n', type=int, default=1000)
+    parser.add_argument('--n_iter', '-n', type=int, default=1000) #number of ars batch iterations
     parser.add_argument('--n_directions', '-nd', type=int, default=8)
     parser.add_argument('--deltas_used', '-du', type=int, default=8)
     parser.add_argument('--step_size', '-s', type=float, default=0.02)
     parser.add_argument('--delta_std', '-std', type=float, default=.03)
-    parser.add_argument('--n_workers', '-e', type=int, default=18)
-    parser.add_argument('--rollout_length', '-r', type=int, default=1000)
+    parser.add_argument('--n_workers', '-e', type=int, default=8)
+    parser.add_argument('--rollout_length', '-r', type=int, default=1000) #episode length
 
     # for Swimmer-v1 and HalfCheetah-v1 use shift = 0
     # for Hopper-v1, Walker2d-v1, and Ant-v1 use shift = 1
@@ -440,6 +443,7 @@ if __name__ == '__main__':
     parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
     parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
     parser.add_argument("--actionlim", dest="actionlim", type=str, default=0.2)
+    parser.add_argument("--currsteps", dest="currsteps", type=int, default=0)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')
