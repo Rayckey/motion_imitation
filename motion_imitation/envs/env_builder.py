@@ -97,7 +97,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
     env = imitation_wrapper_env.ImitationWrapperEnv(env,
                                                     episode_length_start=curriculum_episode_length_start,
                                                     episode_length_end=curriculum_episode_length_end,
-                                                    curriculum_steps=30000000,
+                                                    curriculum_steps=curr_steps,
                                                     num_parallel_envs=num_parallel_envs)
     return env
 
