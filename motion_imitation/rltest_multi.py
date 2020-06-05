@@ -35,10 +35,11 @@ class Worker(object):
 
         # initialize OpenAI environment for each worker
         self.env = env_builder.build_imitation_env(motion_files=[params['motion_file']],
-                                            num_parallel_envs=1,
-                                            mode='train',
-                                            enable_randomizer=False,
-                                            enable_rendering=False)
+                                                num_parallel_envs=1,
+                                                mode='train',
+                                                enable_randomizer=False,
+                                                enable_rendering=params['visualize'],
+                                                action_lim=params['actionlim'])
         # self.env = gym.make(env_name)
         # self.env.seed(env_seed)
 
@@ -106,7 +107,7 @@ class Worker(object):
 
                 # for evaluation we do not shift the rewards (shift = 0) and we use the
                 # default rollout length (1000 for the MuJoCo locomotion tasks)
-                reward, r_steps = self.rollout(shift = 0., rollout_length = self.env.spec.timestep_limit)
+                reward, r_steps = self.rollout(shift = 0., rollout_length = self.rollout_length)
                 rollout_rewards.append(reward)
 
             else:
@@ -168,11 +169,11 @@ class ARSLearner(object):
         logz.save_params(params)
 
         env = env_builder.build_imitation_env(motion_files=[params['motion_file']],
-                                            num_parallel_envs=1,
-                                            mode='train',
-                                            enable_randomizer=False,
-                                            enable_rendering=params['visualize'])
-
+                                                num_parallel_envs=1,
+                                                mode='train',
+                                                enable_randomizer=False,
+                                                enable_rendering=params['visualize'],
+                                                action_lim=params['actionlim'])
         self.timesteps = 0
         self.action_size = env.action_space.shape[0]
         self.ob_size = env.observation_space.shape[0]
@@ -377,7 +378,8 @@ def run_ars(params):
                                             num_parallel_envs=1,
                                             mode='train',
                                             enable_randomizer=False,
-                                            enable_rendering=params['visualize'])
+                                            enable_rendering=params['visualize'],
+                                            action_lim=params['actionlim'])
     # env = gym.make(params['env_name'])
     # env = wrappers.Monitor(env, monitor_dir, force=True)
     ob_dim = env.observation_space.shape[0] #should be 4+4+12+33
@@ -437,6 +439,7 @@ if __name__ == '__main__':
     #additional
     parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
     parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
+    parser.add_argument("--actionlim", dest="actionlim", type=str, default=0.2)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')

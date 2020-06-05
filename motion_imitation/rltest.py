@@ -11,7 +11,7 @@ import gym.wrappers as wrappers
 #Hyper Parameters
 class Hp():
   def __init__(self,
-                nb_steps = 10000,
+                nb_steps = 1000,
                 episode_length = 2000,
                 learning_rate = 0.02,
                 nb_directions = 16,
@@ -179,6 +179,10 @@ def explore(env, normalizer, policy, direction=None, delta=None):
 # Training the AI
 def train(env, policy, normalizer, hp):
   max_reward = 0
+  saved_rewards = []
+  weights_path = 'rewards'
+  if not os.path.exists(weights_path):
+          os.makedirs(weights_path)
   for step in range(hp.nb_steps):
 
     # Initializing the perturbations deltas and the positive/negative rewards
@@ -208,15 +212,18 @@ def train(env, policy, normalizer, hp):
 
     # Printing the final reward of the policy after the update
     reward_evaluation = explore(env, normalizer, policy)
+    saved_rewards.append(reward_evaluation)
     print('Step:', step, 'Reward:', reward_evaluation)
 
-    #save weights for maximum reward and ever 50 steps
+    #save weights for maximum reward and ever 50 step
     if hp.save_weights:
         if reward_evaluation > max_reward:
             max_reward = reward_evaluation
             policy.saveWeights(step=-1)
-        if step%50 is 0:
+            np.savetxt('rewards/rewards.csv', saved_rewards, delimiter=',')
+        if step%20 is 0:
             policy.saveWeights(step=step)
+            np.savetxt('rewards/rewards.csv', saved_rewards, delimiter=',')
 
 #test policy with weights loaded from csv
 def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv', max_steps = 10):
@@ -241,7 +248,7 @@ arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
 arg_parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
 arg_parser.add_argument("--mode", dest="mode", type=str, default="train")
-arg_parser.add_argument("--steps", dest="steps", type=int, default=10000)
+arg_parser.add_argument("--steps", dest="steps", type=int, default=5000)
 arg_parser.add_argument("--eplength", dest="eplength", type=int, default=1000)
 arg_parser.add_argument("--learnrate", dest="learnrate", type=float, default=0.02)
 arg_parser.add_argument("--ndirections", dest="ndirections", type=int, default=16)
@@ -251,6 +258,8 @@ arg_parser.add_argument("--latent", dest="latent", type=int, default=2)
 arg_parser.add_argument("--weights", dest="weights", type=str, default=None)
 arg_parser.add_argument("--saveweights", dest="saveweights", type=bool, default=True)
 arg_parser.add_argument("--teststeps", dest="teststeps", type=int, default=10)
+arg_parser.add_argument("--actionlim", dest="actionlim", type=float, default=0.2)
+arg_parser.add_argument("--savefolder", dest="savefolder", type=str, default="save_data_1")
 args = arg_parser.parse_args()
 
 hp = Hp(nb_steps = args.steps,
@@ -267,7 +276,8 @@ env = env_builder.build_imitation_env(motion_files=[args.motion_file],
                                         num_parallel_envs=1,
                                         mode=args.mode,
                                         enable_randomizer=False,
-                                        enable_rendering=args.visualize)
+                                        enable_rendering=args.visualize,
+                                        action_lim=args.actionlim)
 
 #env = wrappers.Monitor(env, video_path, force=True)
 nb_inputs = env.observation_space.shape[0]

@@ -29,7 +29,7 @@ from robots import laikago
 import numpy as np
 
 def build_imitation_env(motion_files, num_parallel_envs, mode,
-                        enable_randomizer, enable_rendering):
+                        enable_randomizer, enable_rendering, action_lim = 0.2, hist = 3):
     assert len(motion_files) > 0
 
     curriculum_episode_length_start = 20
@@ -51,17 +51,17 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
     # ]
 
     sensors = [
-        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=1),
-        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=1),
-        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=1)
-        #, sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=hist),
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=hist),
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=hist)
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=hist)
     ]
 
 
 
     # Look at this, this is the TG now
     trajectory_generator = simple_TG_group.SimpleTGGroup(
-        action_limit=0.2,
+        action_limit=action_lim,
         init_lg_param=None, is_touting=2, init_f_tg=2)
 
     init_lg_param = trajectory_generator.init_lg_param
