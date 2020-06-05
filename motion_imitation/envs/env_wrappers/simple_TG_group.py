@@ -158,7 +158,7 @@ class SimpleTGGroup(object):
         if self._is_touting == 0:
             res[7] = np.pi
         else:
-            res[7] = np.pi / 2
+            res[7] = np.pi / 4
             # res[8] = 0.2
 
         # set zeros, use this when testing
@@ -173,7 +173,7 @@ class SimpleTGGroup(object):
         if self._is_touting == 0:
             res[7] = np.pi
         else:
-            res[7] = np.pi/2
+            res[7] = np.pi/4
             # res[8] = 0.2
 
         res *= -1

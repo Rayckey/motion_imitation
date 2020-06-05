@@ -102,7 +102,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
     return env
 
 def build_other_env(motion_files, num_parallel_envs, mode,
-                        enable_randomizer, enable_rendering, curr_steps = 30000000):
+                        enable_randomizer, enable_rendering, action_lim = 0.2, curr_steps = 30000000):
     assert len(motion_files) > 0
 
     curriculum_episode_length_start = 20
@@ -136,7 +136,7 @@ def build_other_env(motion_files, num_parallel_envs, mode,
 
     # Look at this, this is the TG now
     trajectory_generator = simple_TG_group.SimpleTGGroup(
-        action_limit=1.0,
+        action_limit=action_lim,
         init_lg_param=None, is_touting=2, init_f_tg=2)
 
     init_lg_param = trajectory_generator.init_lg_param
