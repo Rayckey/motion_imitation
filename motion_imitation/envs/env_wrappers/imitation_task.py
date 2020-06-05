@@ -62,7 +62,6 @@ class ImitationTask(object):
                  goal=np.array([10, 0, 0.48]),
                  tg_init_position=np.zeros([12])):
         """Initializes the task.
-
     Args:
       weight: Float. The scaling factor for the reward.
       terminal_condition: Callable object or function. Determines if the task is
@@ -227,7 +226,6 @@ class ImitationTask(object):
 
     def get_num_motions(self):
         """Get the number of reference motions to be imitated.
-
     Returns:
       Number of reference motions.
     """
@@ -235,7 +233,6 @@ class ImitationTask(object):
 
     def get_num_tar_frames(self):
         """Get the number of target frames to include in the observations.
-
     Returns:
       Number of target frames.
     """
@@ -247,7 +244,6 @@ class ImitationTask(object):
 
     def is_motion_over(self):
         """Checks if the current reference motion is over.
-
     Returns:
       Boolean indicating if the motion is over.
     """
@@ -258,7 +254,6 @@ class ImitationTask(object):
 
     def get_active_motion(self):
         """Get index of the active reference motion currently being imitated.
-
     Returns:
       Index of the active reference motion.
     """
@@ -266,10 +261,8 @@ class ImitationTask(object):
 
     def build_target_obs(self):
         """Constructs the target observations, consisting of a sequence of
-
     target frames for future timesteps. The tartet poses to include is
     specified by self._tar_frame_steps.
-
     Returns:
       An array containing the target frames.
     """
@@ -313,7 +306,6 @@ class ImitationTask(object):
 
     def get_target_obs_bounds(self):
         """Get bounds for target observations.
-
     Returns:
       low: Array containing the minimum value for each target observation
         features.
@@ -609,7 +601,6 @@ class ImitationTask(object):
         return reward
     def _load_ref_motions(self, filenames):
         """Load reference motions.
-
     Args:
       dir: Directory containing the reference motion files.
       filenames: Names of files in dir to be loaded.
@@ -635,7 +626,6 @@ class ImitationTask(object):
 
     def _build_ref_model(self):
         """Constructs simulated model for playing back the reference motion.
-
     Returns:
       Handle to the simulated model for the reference motion.
     """
@@ -728,7 +718,6 @@ class ImitationTask(object):
 
     def _reset_ref_motion(self):
         """Reset reference motion.
-
     First randomly select a new reference motion from
     the set of available motions, and then resets to a random point along the
     selected motion.
@@ -768,7 +757,6 @@ class ImitationTask(object):
 
     def _update_ref_motion(self):
         """Updates the reference motion and synchronizes the state of the reference
-
     model with the current motion frame.
     """
         time = self._get_motion_time()
@@ -816,7 +804,6 @@ class ImitationTask(object):
 
     def _update_ref_model(self):
         """Synchronizes the reference model to the pose and velocity of the
-
     reference motion.
     """
         self._set_state(self._ref_model, self._ref_pose, self._ref_vel)
@@ -824,9 +811,7 @@ class ImitationTask(object):
 
     def _sync_sim_model(self, perturb_state):
         """Synchronizes the simulated character to the pose and velocity of the
-
     reference motion.
-
     Args:
       perturb_state: A flag for enabling perturbations to be applied to state.
     """
@@ -848,7 +833,6 @@ class ImitationTask(object):
 
     def _set_state(self, phys_model, pose, vel):
         """Set the state of a character to the given pose and velocity.
-
     Args:
       phys_model: handle of the character
       pose: pose to be applied to the character
@@ -917,7 +901,6 @@ class ImitationTask(object):
 
     def _get_joint_vel_idx(self, j):
         """Get the starting index of the velocity data for a give joint in a
-
     velocity array.
     """
         idx = self._joint_vel_idx[j]
@@ -977,12 +960,10 @@ class ImitationTask(object):
 
     def _calc_ref_pose(self, time, apply_origin_offset=True):
         """Calculates the reference pose for a given point in time.
-
     Args:
       time: Time elapsed since the start of the reference motion.
       apply_origin_offset: A flag for enabling the origin offset to be applied
         to the pose.
-
     Returns:
       An array containing the reference pose at the given point in time.
     """
@@ -1031,10 +1012,8 @@ class ImitationTask(object):
 
     def _calc_ref_vel(self, time):
         """Calculates the reference velocity for a given point in time.
-
     Args:
       time: Time elapsed since the start of the reference motion.
-
     Returns:
       An array containing the reference velocity at the given point in time.
     """
@@ -1111,11 +1090,9 @@ class ImitationTask(object):
 
     def _sync_ref_origin(self, sync_root_position, sync_root_rotation):
         """Moves the origin of the reference motion, such that the root of the
-
     simulated and reference characters are at the same location. This is used
     to periodically synchronize the reference motion with the simulated
     character in order to mitigate drift.
-
     Args:
       sync_root_position: boolean indicating if the root position should be
         synchronized
@@ -1195,7 +1172,6 @@ class ImitationTask(object):
 
     def _sample_ref_motion(self):
         """Samples a motion ID randomly from the set of reference motions.
-
     Returns:
       ID of the selected motion.
     """
@@ -1205,7 +1181,6 @@ class ImitationTask(object):
 
     def _change_ref_motion(self, motion_id):
         """Change the current active reference motion to a specified motion.
-
     Args:
       motion_id: ID of new motion.
     """
@@ -1230,7 +1205,6 @@ class ImitationTask(object):
 
     def _sample_time_offset(self):
         """Sample a random time offset for the currently active motion.
-
     Returns:
       A random time offset between 0 and the duration of the currently active
       motion (in seconds).
@@ -1273,21 +1247,17 @@ class ImitationTask(object):
 
     def _calc_heading(self, root_rotation):
         """Returns the heading of a rotation q, specified as a quaternion.
-
     The heading represents the rotational component of q along the vertical
     axis (z axis). The heading is computing with respect to the robot's default
     root orientation (self._default_root_rotation). This is because different
     models have different coordinate systems, and some models may not have the z
     axis as the up direction. This is similar to robot.GetTrueBaseOrientation(),
     but is applied both to the robot and reference motion.
-
     Args:
       root_rotation: A quaternion representing the rotation of the robot's root.
-
     Returns:
       An angle representing the rotation about the z axis with respect to
       the default orientation.
-
     """
         inv_default_rotation = transformations.quaternion_conjugate(
             self._get_default_root_rotation())
@@ -1298,19 +1268,15 @@ class ImitationTask(object):
 
     def _calc_heading_rot(self, root_rotation):
         """Return a quaternion representing the heading rotation of q along the vertical axis (z axis).
-
     The heading is computing with respect to the robot's default root
     orientation (self._default_root_rotation). This is because different models
     have different coordinate systems, and some models may not have the z axis
     as the up direction.
-
     Args:
       root_rotation: A quaternion representing the rotation of the robot's root.
-
     Returns:
       A quaternion representing the rotation about the z axis with respect to
       the default orientation.
-
     """
         inv_default_rotation = transformations.quaternion_conjugate(
             self._get_default_root_rotation())

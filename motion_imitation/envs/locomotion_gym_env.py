@@ -47,7 +47,6 @@ class LocomotionGymEnv(gym.Env):
                task=None,
                env_randomizers=None):
     """Initializes the locomotion gym environment.
-
     Args:
       gym_config: An instance of LocomotionGymConfig.
       robot_class: A class of a robot. We provide a class rather than an
@@ -59,10 +58,8 @@ class LocomotionGymEnv(gym.Env):
       env_randomizers: A list of EnvRandomizer(s). An EnvRandomizer may
         randomize the physical property of minitaur, change the terrrain during
         reset(), or add perturbation forces during step().
-
     Raises:
       ValueError: If the num_action_repeat is less than 1.
-
     """
 
     self.seed()
@@ -172,9 +169,7 @@ class LocomotionGymEnv(gym.Env):
             reset_duration=0.0,
             reset_visualization_camera=True):
     """Resets the robot's position in the world or rebuild the sim world.
-
     The simulation world will be rebuilt if self._hard_reset is True.
-
     Args:
       initial_motor_angles: A list of Floats. The desired joint angles after
         reset. If None, the robot will use its built-in value.
@@ -182,7 +177,6 @@ class LocomotionGymEnv(gym.Env):
         to the desired initial values.
       reset_visualization_camera: Whether to reset debug visualization camera on
         reset.
-
     Returns:
       A numpy array contains the initial observation after reset.
     """
@@ -243,7 +237,6 @@ class LocomotionGymEnv(gym.Env):
 
   def step(self, action):
     """Step forward the simulation, given the action.
-
     Args:
       action: Can be a list of desired motor angles for all motors when the
         robot is in position control mode; A list of desired motor torques. Or a
@@ -251,14 +244,12 @@ class LocomotionGymEnv(gym.Env):
         action must be compatible with the robot's motor control mode. Also, we
         are not going to use the leg space (swing/extension) definition at the
         gym level, since they are specific to Minitaur.
-
     Returns:
       observations: The observation dictionary. The keys are the sensor names
         and the values are the sensor readings.
       reward: The reward for the current state-action pair.
       done: Whether the episode has ended.
       info: A dictionary that stores diagnostic information.
-
     Raises:
       ValueError: The action dimension is not the same as the number of motors.
       ValueError: The magnitude of actions is out of bounds.
@@ -410,7 +401,6 @@ class LocomotionGymEnv(gym.Env):
 
   def _get_observation(self):
     """Get observation of this environment from a list of sensors.
-
     Returns:
       observations: sensory observation in the numpy array format
     """
@@ -423,14 +413,12 @@ class LocomotionGymEnv(gym.Env):
 
   def set_time_step(self, num_action_repeat, sim_step=0.001):
     """Sets the time step of the environment.
-
     Args:
       num_action_repeat: The number of simulation steps/action repeats to be
         executed when calling env.step().
       sim_step: The simulation time step in PyBullet. By default, the simulation
         step is 0.001s, which is a good trade-off between simulation speed and
         accuracy.
-
     Raises:
       ValueError: If the num_action_repeat is less than 1.
     """
@@ -448,7 +436,6 @@ class LocomotionGymEnv(gym.Env):
 
   def get_time_since_reset(self):
     """Get the time passed (in seconds) since the last reset.
-
     Returns:
       Time in seconds since the last reset.
     """

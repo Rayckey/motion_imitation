@@ -30,60 +30,76 @@ import numpy as np
 
 def build_imitation_env(motion_files, num_parallel_envs, mode,
                         enable_randomizer, enable_rendering):
-  assert len(motion_files) > 0
+    assert len(motion_files) > 0
 
-  curriculum_episode_length_start = 20
-  curriculum_episode_length_end = 600
+    curriculum_episode_length_start = 20
+    curriculum_episode_length_end = 600
 
-  sim_params = locomotion_gym_config.SimulationParameters()
-  sim_params.enable_rendering = enable_rendering
+    sim_params = locomotion_gym_config.SimulationParameters()
+    sim_params.enable_rendering = enable_rendering
 
-  gym_config = locomotion_gym_config.LocomotionGymConfig(simulation_parameters=sim_params)
+    gym_config = locomotion_gym_config.LocomotionGymConfig(simulation_parameters=sim_params)
 
-  robot_class = laikago.Laikago
+    robot_class = laikago.Laikago
 
-  sensors = [
-      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=1),
-      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=1),
-      sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=1)
-      #, sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
-  ]
+    # sensors = [
+    #     sensor_wrappers.HistoricSensorWrapper(
+    #         wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=3),
+    #     sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(), num_history=3),
+    #     sensor_wrappers.HistoricSensorWrapper(
+    #         wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
+    # ]
 
-  task = imitation_task.ImitationTask(ref_motion_filenames=motion_files,
-                                      enable_cycle_sync=True,
-                                      tar_frame_steps=[1, 2, 10, 30],
-                                      ref_state_init_prob=0.9,
-                                      warmup_time=0.25)
+    sensors = [
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.BasePositionSensor(), num_history=1),
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.IMUSensor(['Y', 'R', 'dR', 'P', 'dP']), num_history=1),
+        sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=robot_sensors.MotorAngleSensor(num_motors=laikago.NUM_MOTORS), num_history=1)
+        #, sensor_wrappers.HistoricSensorWrapper(wrapped_sensor=environment_sensors.LastActionSensor(num_actions=laikago.NUM_MOTORS), num_history=3)
+    ]
 
-  randomizers = []
-  if enable_randomizer:
-    randomizer = controllable_env_randomizer_from_config.ControllableEnvRandomizerFromConfig(verbose=False)
-    randomizers.append(randomizer)
 
-  env = locomotion_gym_env.LocomotionGymEnv(gym_config=gym_config, robot_class=robot_class,
-                                            env_randomizers=randomizers, robot_sensors=sensors, task=task)
 
-  env = observation_dictionary_to_array_wrapper.ObservationDictionaryToArrayWrapper(env)
-  # env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
-  #                                                                      trajectory_generator=simple_openloop.LaikagoPoseOffsetGenerator(action_limit=laikago.UPPER_BOUND))
+    # Look at this, this is the TG now
+    trajectory_generator = simple_TG_group.SimpleTGGroup(
+        action_limit=0.2,
+        init_lg_param=None, is_touting=2, init_f_tg=2)
 
-  # env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
-  #                                                                      trajectory_generator=simple_TG_group.SimpleTGGroup(action_limit=laikago.UPPER_BOUND , init_lg_param=None))
-  env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
-                                                                         trajectory_generator=simple_TG_group.SimpleTGGroup(
-                                                                             action_limit=0.4,
-                                                                             init_lg_param=None, is_touting=2, init_f_tg=2))
+    init_lg_param = trajectory_generator.init_lg_param
+    # print(" initial tg parameters is this")
+    # print(init_lg_param)
+    init_lg_param = np.concatenate([np.zeros([12]), init_lg_param[1:]])
 
-  # if mode == "test":
-  #     curriculum_episode_length_start = curriculum_episode_length_end
-  #
-  env = imitation_wrapper_env.ImitationWrapperEnv(env,
-                                                  episode_length_start=curriculum_episode_length_start,
-                                                  episode_length_end=curriculum_episode_length_end,
-                                                  curriculum_steps=30000000,
-                                                  num_parallel_envs=num_parallel_envs)
-  return env
+    tg_init_position = trajectory_generator.get_action(current_time=0, input_action=init_lg_param)
 
+
+    task = imitation_task.ImitationTask(ref_motion_filenames=motion_files,
+                                        enable_cycle_sync=True,
+                                        tar_frame_steps=[1, 2, 10, 30],
+                                        ref_state_init_prob=0.9,
+                                        warmup_time=0.25,tg_init_position=tg_init_position)
+
+    randomizers = []
+    if enable_randomizer:
+        randomizer = controllable_env_randomizer_from_config.ControllableEnvRandomizerFromConfig(verbose=False)
+        randomizers.append(randomizer)
+
+    env = locomotion_gym_env.LocomotionGymEnv(gym_config=gym_config, robot_class=robot_class,
+                                              env_randomizers=randomizers, robot_sensors=sensors, task=task)
+
+    env = observation_dictionary_to_array_wrapper.ObservationDictionaryToArrayWrapper(env)
+
+    env = trajectory_generator_wrapper_env.TrajectoryGeneratorWrapperEnv(env,
+                                                                         trajectory_generator=trajectory_generator)
+
+    if mode == "test":
+        curriculum_episode_length_start = curriculum_episode_length_end
+
+    env = imitation_wrapper_env.ImitationWrapperEnv(env,
+                                                    episode_length_start=curriculum_episode_length_start,
+                                                    episode_length_end=curriculum_episode_length_end,
+                                                    curriculum_steps=30000000,
+                                                    num_parallel_envs=num_parallel_envs)
+    return env
 
 def build_other_env(motion_files, num_parallel_envs, mode,
                         enable_randomizer, enable_rendering):
