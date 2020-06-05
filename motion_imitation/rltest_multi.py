@@ -442,7 +442,7 @@ if __name__ == '__main__':
     #additional
     parser.add_argument("--motion_file", dest="motion_file", type=str, default="motion_imitation/data/motions/dog_pace.txt")
     parser.add_argument("--visualize", dest="visualize", action="store_true", default=False)
-    parser.add_argument("--actionlim", dest="actionlim", type=str, default=0.2)
+    parser.add_argument("--actionlim", dest="actionlim", type=float, default=0.2)
     parser.add_argument("--currsteps", dest="currsteps", type=int, default=0)
 
     local_ip = socket.gethostbyname(socket.gethostname())
