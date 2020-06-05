@@ -67,7 +67,7 @@ class ImitationWrapperEnv(object):
     observation = self._modify_observation(original_observation)
     terminated = done
 
-    if self.curriculum_steps > 0:
+    if self._curriculum_steps > 0:
         done |= (self.env_step_counter >= self._max_episode_steps)
 
     if not done:
