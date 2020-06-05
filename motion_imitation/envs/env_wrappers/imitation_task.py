@@ -34,7 +34,7 @@ class ImitationTask(object):
     """Imitation reference motion task."""
 
     def __init__(self,
-                 weight=1.0,
+                 weight=2.0,
                  terminal_condition=imitation_terminal_conditions.imitation_terminal_condition,
                  ref_motion_filenames=None,
                  enable_cycle_sync=True,

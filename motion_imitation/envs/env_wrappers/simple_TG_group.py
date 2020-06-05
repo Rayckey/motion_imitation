@@ -127,14 +127,14 @@ class SimpleTGGroup(object):
         else:
             if self._is_touting == 1:
                 if leg_id == 0 or leg_id == 1:
-                    res[7] = np.pi
+                    res[7] = np.pi + np.pi/4
                 else:
-                    res[7] = 0
+                    res[7] = np.pi/4
             if self._is_touting == 2:
                 if leg_id == 0 or leg_id == 3:
-                    res[7] = 0
+                    res[7] = np.pi/4
                 else:
-                    res[7] = np.pi
+                    res[7] = np.pi + np.pi/4
 
         # set hip offset
         if leg_id == 0 or leg_id == 2:
@@ -163,24 +163,25 @@ class SimpleTGGroup(object):
 
         # set zeros, use this when testing
         # res = np.zeros(9)
-
+        res = np.array([0, 0.01, 0, 0, 0, 0.025, 0, 0, 0.2])
         return res
 
     def get_default_lower_bound(self, leg_id):
 
         res = np.array([np.pi / 16.0, 0.04, 0.1, 0.1, 0.05, 0.025, 0.2, np.pi, 0.1])
 
+
         if self._is_touting == 0:
             res[7] = np.pi
         else:
             res[7] = np.pi/4
             # res[8] = 0.2
-
+        
         res *= -1
 
         # set zeros, use this when testing
         # res = np.zeros(9)
-
+        res = -np.array([0, 0.01, 0, 0, 0, 0.025, 0, 0, 0.2])
         return res
 
     def _update_phi_t(self, f_tg, current_time=None):
