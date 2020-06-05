@@ -326,7 +326,7 @@ class ARSLearner(object):
 
                 rewards = self.aggregate_rollouts(num_rollouts = 100, evaluate = True)
                 w = ray.get(self.workers[0].get_weights_plus_stats.remote())
-                np.savez(self.logdir + "/HPolicy", w)
+                np.savez(self.logdir + "/HPolicy_" + (i+1), w)
 
                 print(sorted(self.params.items()))
                 logz.log_tabular("Time", time.time() - start)
