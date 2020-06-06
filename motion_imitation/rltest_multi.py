@@ -51,6 +51,8 @@ class Worker(object):
         self.policy_params = policy_params
         if policy_params['type'] == 'linear':
             self.policy = LinearPolicy(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
         else:
             self.policy = HLinearPolicy(policy_params)
 
@@ -212,6 +214,8 @@ class ARSLearner(object):
         # initialize policy
         if policy_params['type'] == 'hlinear':
             self.policy = HLinearPolicy(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
             self.w_policy = self.policy.get_weights()
         else:
             raise NotImplementedError
@@ -445,6 +449,7 @@ if __name__ == '__main__':
     parser.add_argument("--actionlim", dest="actionlim", type=float, default=0.2)
     parser.add_argument("--currsteps", dest="currsteps", type=int, default=0)
     parser.add_argument("--saveniters", dest="saveniters", type=int, default=10)
+    parser.add_argument("--initweights", dest="initweights", type=str, default=None)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')

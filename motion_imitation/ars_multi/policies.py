@@ -111,3 +111,10 @@ class HLinearPolicy(Policy):
           #the order of IMU history is reversed here (probably okay to keep)
           l = np.concatenate([input[imu_index+1:imu_index+5],l])
         return [h,l]
+
+    def loadWeights(self,filepath):
+        print('loading policy')
+        lin_policy = np.load(filepath, allow_pickle = True)
+        lin_policy = lin_policy['arr_0']
+        self.weights = lin_policy[0]
+        
