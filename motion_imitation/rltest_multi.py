@@ -51,10 +51,10 @@ class Worker(object):
         self.policy_params = policy_params
         if policy_params['type'] == 'linear':
             self.policy = LinearPolicy(policy_params)
-            if params['initweights'] != None:
-                self.policy.loadWeights(params['initweights'])
         else:
             self.policy = HLinearPolicy(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
 
         self.delta_std = delta_std
         self.rollout_length = rollout_length
