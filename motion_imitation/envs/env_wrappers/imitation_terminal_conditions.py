@@ -28,7 +28,7 @@ from pybullet_utils import transformations
 
 def imitation_terminal_condition(env,
                                  goal = np.array([0,0,0.48]),
-                                 dist_to_goal = 5,
+                                 dist_to_goal = 0.2,
                                  dist_fail_threshold=1.0,
                                  rot_fail_threshold=0.5 * np.pi,
                                  path=0):
@@ -101,7 +101,6 @@ def imitation_terminal_condition(env,
       out_of_path = false
   elif path == 3:
       out_of_path = np.sqrt(y_pos**2+x_pos**2) > 10
-
   done = contact_fall \
         or at_goal \
         or out_of_path

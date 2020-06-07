@@ -357,20 +357,23 @@ def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv', max
         print('Reward:', reward_evaluation)
 
 
-def sweep(env, policy):
-    for l1 in np.linspace(-1,1,5):
-        for l2 in np.linspace(-1,1,5):
-            for i in range(30):
+def sweep(env, policy,steps = 5,rollouts = 30,max_steps = 60):
+    for l1 in np.linspace(-1,1,steps):
+        for l2 in np.linspace(-1,1,steps):
+            avgvx = 0
+            avgvy = 0
+            total_plays = 0
+            for i in range(rollouts):
                 state = env.reset()
                 policy.reset()
                 done = False
                 num_plays = 0.
                 sum_rewards = 0
-                avgvx = 0
-                avgvy = 0
-                while not done and num_plays < hp.episode_length:
+                while not done and num_plays < max_steps:
                     action = policy.evaluate(state, latent1=l1, latent2=l2)
                     state, reward, done, _ = env.step(action)
+                    num_plays += 1
+                    total_plays += 1
                     [vx,vy,_] = env.getVel()
                     avgvx += vx
                     avgvy += vy
@@ -380,14 +383,14 @@ def sweep(env, policy):
                     logz.log_tabular("y", state[1])
                     logz.log_tabular("vx", vx)
                     logz.log_tabular("vy", vy)
-                    if done or num_plays >= hp.episode_length:
-                        logz.log_tabular("avgvx", avgvx/(num_plays+1))
-                        logz.log_tabular("avgvy", avgvy/(num_plays+1))
+                    if i == (rollouts-1) and (done or num_plays >= max_steps):
+                        logz.log_tabular("avgvx", avgvx/(total_plays))
+                        logz.log_tabular("avgvy", avgvy/(total_plays))
                     else:
                         logz.log_tabular("avgvx", 0)
                         logz.log_tabular("avgvy", 0)
                     logz.dump_tabular(print=False)
-                    num_plays += 1
+
 
 def path(env, policy,rollouts = 100):
     for i in range(rollouts):
