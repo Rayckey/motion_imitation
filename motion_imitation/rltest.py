@@ -214,13 +214,12 @@ class HPolicyhlb():
     input = (input - self.W_mean)/self.W_std
     [input_h,input_l] = self.splitInput(input)
     if self.time_step_h <= 0:
-      print("NEW COMMAND")
       output_h = np.clip(theta_h_temp@input_h,-1,1)
       if latent1 == None or latent2 == None:
           self.latent_comm = output_h[0:self.latent_size]
       else:
           self.latent_comm = np.asarray([latent1,latent2])
-      self.time_step_h = np.interp(output_h[-1], (-1, 1), (100, 700))
+      self.time_step_h = np.interp(output_h[-1], (-1, 1), (20, 200))
     self.time_step_h -= 1
     return theta_l_temp@np.concatenate((input_l, self.latent_comm))+theta_l_bias_temp
 
@@ -381,13 +380,13 @@ def sweep(env, policy):
                     logz.log_tabular("y", state[1])
                     logz.log_tabular("vx", vx)
                     logz.log_tabular("vy", vy)
-                    if done or num_plays < hp.episode_length:
+                    if done or num_plays >= hp.episode_length:
                         logz.log_tabular("avgvx", avgvx/(num_plays+1))
                         logz.log_tabular("avgvy", avgvy/(num_plays+1))
                     else:
                         logz.log_tabular("avgvx", 0)
                         logz.log_tabular("avgvy", 0)
-                    logz.dump_tabular(print = False)
+                    logz.dump_tabular(print=False)
                     num_plays += 1
 
 def path(env, policy,rollouts = 100):
@@ -409,7 +408,7 @@ def path(env, policy,rollouts = 100):
             else:
                 logz.log_tabular("highcommx", 0)
                 logz.log_tabular("highcommy", 0)
-            logz.dump_tabular()
+            logz.dump_tabular(print=False)
             num_plays += 1
 
 # MAIN FUCTION
