@@ -31,7 +31,7 @@ import numpy as np
 def build_imitation_env(motion_files, num_parallel_envs, mode,
                         enable_randomizer, enable_rendering,
                         action_lim = 0.2, hist = 3,
-                        curr_steps = 30000000, taskpath = 0):
+                        curr_steps = 30000000, path = 0):
     assert len(motion_files) > 0
 
     curriculum_episode_length_start = 20
@@ -79,7 +79,7 @@ def build_imitation_env(motion_files, num_parallel_envs, mode,
                                         tar_frame_steps=[1, 2, 10, 30],
                                         ref_state_init_prob=0.9,
                                         warmup_time=0.25,tg_init_position=tg_init_position,
-                                        path = taskpath)
+                                        path = path)
 
     randomizers = []
     if enable_randomizer:
