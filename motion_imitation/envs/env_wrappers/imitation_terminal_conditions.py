@@ -99,6 +99,8 @@ def imitation_terminal_condition(env,
 
   if path == -1:
       out_of_path = false
+  elif path == 3:
+      out_of_path = np.sqrt(y_pos**2+x_pos**2) > 10
 
   done = contact_fall \
         or at_goal \

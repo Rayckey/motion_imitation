@@ -281,7 +281,8 @@ class HPolicyhlb():
 
   def reset(self):
       self.time_step_h = 0
-
+  def getTimeStep(self):
+      return self.time_step_h
 # Exploring a policy in one specific direction and over one episode
 def explore(env, policy, normalizer=None, direction=None, delta=None):
   state = env.reset()
@@ -358,22 +359,35 @@ def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv', max
 
 
 def sweep(env, policy):
-    for l1 in np.linspace(-1,1,10):
-        for l2 in np.linspace(-1,1,10):
-            for i in range(50):
+    for l1 in np.linspace(-1,1,5):
+        for l2 in np.linspace(-1,1,5):
+            for i in range(30):
                 state = env.reset()
                 policy.reset()
                 done = False
                 num_plays = 0.
                 sum_rewards = 0
+                avgvx = 0
+                avgvy = 0
                 while not done and num_plays < hp.episode_length:
                     action = policy.evaluate(state, latent1=l1, latent2=l2)
                     state, reward, done, _ = env.step(action)
+                    [vx,vy,_] = env.getVel()
+                    avgvx += vx
+                    avgvy += vy
                     logz.log_tabular("l1", l1)
                     logz.log_tabular("l2", l2)
                     logz.log_tabular("x", state[0])
                     logz.log_tabular("y", state[1])
-                    logz.dump_tabular()
+                    logz.log_tabular("vx", vx)
+                    logz.log_tabular("vy", vy)
+                    if done or num_plays < hp.episode_length:
+                        logz.log_tabular("avgvx", avgvx/(num_plays+1))
+                        logz.log_tabular("avgvy", avgvy/(num_plays+1))
+                    else:
+                        logz.log_tabular("avgvx", 0)
+                        logz.log_tabular("avgvy", 0)
+                    logz.dump_tabular(print = False)
                     num_plays += 1
 
 def path(env, policy,rollouts = 100):
@@ -386,9 +400,15 @@ def path(env, policy,rollouts = 100):
         while not done and num_plays < hp.episode_length:
             action = policy.evaluate(state)
             state, reward, done, _ = env.step(action)
-            [x,y,_] = env.getxyz()
-            logz.log_tabular("x", x)
-            logz.log_tabular("y", y)
+            logz.log_tabular("x", state[0])
+            logz.log_tabular("y", state[1])
+            ts = policy.getTimeStep()
+            if ts <= 0:
+                logz.log_tabular("highcommx", state[0])
+                logz.log_tabular("highcommy", state[1])
+            else:
+                logz.log_tabular("highcommx", 0)
+                logz.log_tabular("highcommy", 0)
             logz.dump_tabular()
             num_plays += 1
 
@@ -438,7 +458,8 @@ env = env_builder.build_imitation_env(motion_files=[args.motion_file],
                                         mode=args.mode,
                                         enable_randomizer=False,
                                         enable_rendering=args.visualize,
-                                        action_lim=args.actionlim)
+                                        action_lim=args.actionlim,
+                                        curr_steps=0)
 
 #env = wrappers.Monitor(env, video_path, force=True)
 nb_inputs = env.observation_space.shape[0]
@@ -458,9 +479,18 @@ if args.mode == 'train':
 elif args.mode == 'test':
   test(env, policy, normalizer, args.weights, args.teststeps)
 elif args.mode == 'sweep':
+    env = env_builder.build_imitation_env(motion_files=[args.motion_file],
+                                            num_parallel_envs=1,
+                                            mode=args.mode,
+                                            enable_randomizer=False,
+                                            enable_rendering=args.visualize,
+                                            action_lim=args.actionlim,
+                                            curr_steps=0,
+                                            path = 3)
+
     if args.weights != None:
         policy.loadWeights(args.weights)
-    dir_path = 'data'
+    dir_path = 'sweep'
     if not(os.path.exists(dir_path)):
         os.makedirs(dir_path)
     logdir = dir_path
@@ -471,7 +501,7 @@ elif args.mode == 'sweep':
 elif args.mode == 'path':
     if args.weights != None:
         policy.loadWeights(args.weights)
-    dir_path = 'data'
+    dir_path = 'path'
     if not(os.path.exists(dir_path)):
         os.makedirs(dir_path)
     logdir = dir_path

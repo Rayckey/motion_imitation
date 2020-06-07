@@ -1,4 +1,4 @@
-# Code in this file is copied and adapted from 
+# Code in this file is copied and adapted from
 # https://github.com/berkeleydeeprlcourse
 
 import json
@@ -8,7 +8,7 @@ import json
 Some simple logging functionality, inspired by rllab's logging.
 Assumes that each diagnostic gets logged each iteration
 
-Call logz.configure_output_dir() to start logging to a 
+Call logz.configure_output_dir() to start logging to a
 tab-separated-values file (some_folder_name/log.txt)
 
 """
@@ -49,7 +49,7 @@ def configure_output_dir(d=None):
     G.first_row = True
     G.log_headers = []
     G.log_current_row = {}
-    
+
     G.output_dir = d or "/tmp/experiments/%i"%int(time.time())
     if not osp.exists(G.output_dir):
         os.makedirs(G.output_dir)
@@ -69,13 +69,13 @@ def log_tabular(key, val):
     assert key not in G.log_current_row, "You already set %s this iteration. Maybe you forgot to call dump_tabular()"%key
     G.log_current_row[key] = val
 
-    
+
 def save_params(params):
     with open(osp.join(G.output_dir, "params.json"), 'w') as out:
         out.write(json.dumps(params, separators=(',\n','\t:\t'), sort_keys=True))
 
 
-def dump_tabular():
+def dump_tabular(print=True):
     """
     Write all of the diagnostics from the current iteration
     """
@@ -85,14 +85,17 @@ def dump_tabular():
     keystr = '%'+'%d'%max_key_len
     fmt = "| " + keystr + "s | %15s |"
     n_slashes = 22 + max_key_len
-    print("-"*n_slashes)
+    if print:
+        print("-"*n_slashes)
     for key in G.log_headers:
         val = G.log_current_row.get(key, "")
         if hasattr(val, "__float__"): valstr = "%8.3g"%val
         else: valstr = val
-        print(fmt%(key, valstr))
+        if print:
+            print(fmt%(key, valstr))
         vals.append(val)
-    print("-"*n_slashes)
+    if print:
+        print("-"*n_slashes)
     if G.output_file is not None:
         if G.first_row:
             G.output_file.write("\t".join(G.log_headers))

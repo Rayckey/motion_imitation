@@ -441,8 +441,8 @@ class LocomotionGymEnv(gym.Env):
     """
     return self._robot.GetTimeSinceReset()
 
-  def getxyz(self):
-    return self._robot.GetBasePosition()
+  def getVel(self):
+    return self._robot.GetBaseVelocity()
 
   @property
   def pybullet_client(self):
