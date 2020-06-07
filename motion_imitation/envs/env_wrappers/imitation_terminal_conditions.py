@@ -28,7 +28,7 @@ from pybullet_utils import transformations
 
 def imitation_terminal_condition(env,
                                  goal = np.array([0,0,0.48]),
-                                 dist_to_goal = 0.2,
+                                 dist_to_goal = 0.1,
                                  dist_fail_threshold=1.0,
                                  rot_fail_threshold=0.5 * np.pi,
                                  path=0):
