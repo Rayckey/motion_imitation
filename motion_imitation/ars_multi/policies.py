@@ -85,7 +85,7 @@ class HLinearPolicy(Policy):
         if self.time_step_h <= 0:
           output_h = np.clip(theta_h@ob_h,-1,1)
           self.latent_comm = output_h[0:self.latent_dim]
-          self.time_step_h = np.interp(output_h[-1], (-1, 1), (100, 700))
+          self.time_step_h = np.interp(output_h[-1], (-1, 1), (20, 200))
         self.time_step_h -= 1
         return theta_l@np.concatenate((ob_l, self.latent_comm))+theta_b
 
@@ -117,4 +117,6 @@ class HLinearPolicy(Policy):
         lin_policy = np.load(filepath, allow_pickle = True)
         lin_policy = lin_policy['arr_0']
         self.weights = lin_policy[0]
-        
+
+    def reset(self):
+        self.time_step_h = 0

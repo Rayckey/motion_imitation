@@ -31,7 +31,7 @@ def imitation_terminal_condition(env,
                                  dist_to_goal = 5,
                                  dist_fail_threshold=1.0,
                                  rot_fail_threshold=0.5 * np.pi,
-                                 ):
+                                 path=0):
   """A terminal condition for motion imitation task.
 
   Args:
@@ -88,8 +88,17 @@ def imitation_terminal_condition(env,
 
   #define path here (ex parabola +/- 1)
   [x_pos,y_pos,z_pos] = root_pos_sim
-  f = -0.07*x_pos**2+0.7*x_pos
+
+  if path == 1:
+      f = 0.1*x_pos**2-x_pos
+  elif path == 2:
+      f = -0.1*x_pos**2+x_pos
+  else:
+      f = -0.07*x_pos**2+0.7*x_pos
   out_of_path = y_pos < f-1 or y_pos > f+1
+
+  if path == -1:
+      out_of_path = false
 
   done = contact_fall \
         or at_goal \

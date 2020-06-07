@@ -40,7 +40,8 @@ class Worker(object):
                                                 enable_randomizer=False,
                                                 enable_rendering=params['visualize'],
                                                 action_lim=params['actionlim'],
-                                                curr_steps=params['currsteps'])
+                                                curr_steps=params['currsteps'],
+                                                path=params['path'])
         # self.env = gym.make(env_name)
         # self.env.seed(env_seed)
 
@@ -79,7 +80,7 @@ class Worker(object):
 
         total_reward = 0.
         steps = 0
-
+        self.policy.reset()
         ob = self.env.reset()
         for i in range(rollout_length):
             action = self.policy.act(ob)
@@ -177,7 +178,8 @@ class ARSLearner(object):
                                                 enable_randomizer=False,
                                                 enable_rendering=params['visualize'],
                                                 action_lim=params['actionlim'],
-                                                curr_steps=params['currsteps'])
+                                                curr_steps=params['currsteps'],
+                                                path=params['path'])
         self.timesteps = 0
         self.action_size = env.action_space.shape[0]
         self.ob_size = env.observation_space.shape[0]
@@ -328,7 +330,7 @@ class ARSLearner(object):
             # record statistics every 10 iterations
             if ((i + 1) % self.params['saveniters'] == 0):
 
-                rewards = self.aggregate_rollouts(num_rollouts = 100, evaluate = True)
+                rewards = self.aggregate_rollouts(num_rollouts = 30, evaluate = True)
                 w = ray.get(self.workers[0].get_weights_plus_stats.remote())
                 np.savez(self.logdir + "/HPolicy_" + str(i+1), w)
 
@@ -386,7 +388,8 @@ def run_ars(params):
                                             enable_randomizer=False,
                                             enable_rendering=params['visualize'],
                                             action_lim=params['actionlim'],
-                                            curr_steps=params['currsteps'])
+                                            curr_steps=params['currsteps'],
+                                            path=params['path'])
     # env = gym.make(params['env_name'])
     # env = wrappers.Monitor(env, monitor_dir, force=True)
     ob_dim = env.observation_space.shape[0] #should be 4+4+12+33
@@ -450,6 +453,7 @@ if __name__ == '__main__':
     parser.add_argument("--currsteps", dest="currsteps", type=int, default=0)
     parser.add_argument("--saveniters", dest="saveniters", type=int, default=10)
     parser.add_argument("--initweights", dest="initweights", type=str, default=None)
+    parser.add_argument("--path", dest="path", type=int, default=0)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')
