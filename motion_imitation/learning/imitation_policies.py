@@ -55,24 +55,26 @@ class ImitationPolicy(FeedForwardPolicy):
     """
     Policy object that implements actor critic, using a feed forward neural network.
 
-    :param sess: (TensorFlow session) The current TensorFlow session
-    :param ob_space: (Gym Space) The observation space of the environment
-    :param ac_space: (Gym Space) The action space of the environment
-    :param n_env: (int) The number of environments to run
-    :param n_steps: (int) The number of steps to run for each environment
-    :param n_batch: (int) The number of batch to run (n_envs * n_steps)
-    :param reuse: (bool) If the policy is reusable or not
-    :param layers: ([int]) (deprecated, use net_arch instead) The size of the Neural network for the policy
-        (if None, default to [64, 64])
+    Guess we'll need to change this
+
+    :param sess: (TensorFlow session) The current TensorFlow session, can change later lon
+    :param ob_space: (Gym Space) The observation space of the environment , should stay the same
+    :param ac_space: (Gym Space) The action space of the environment , Same right ??
+    :param n_env: (int) The number of environments to run , adjustable, I think
+    :param n_steps: (int) The number of steps to run for each environment , change later
+    :param n_batch: (int) The number of batch to run (n_envs * n_steps) , pfff, change later
+    :param reuse: (bool) If the policy is reusable or not, this is IMPORTANT!!!!
+
+
     :param net_arch: (list) Specification of the actor-critic policy network architecture (see mlp_extractor
-        documentation for details).
+        documentation for details)
     :param act_fun: (tf.func) the activation function to use in the neural network.
     :param cnn_extractor: (function (TensorFlow Tensor, ``**kwargs``): (TensorFlow Tensor)) the CNN feature extraction
     :param feature_extraction: (str) The feature extraction type ("cnn" or "mlp")
     :param kwargs: (dict) Extra keyword arguments for the nature CNN feature extraction
     """
 
-    def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None, net_arch=None,
+    def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, net_arch=None,
                  act_fun=tf.tanh, cnn_extractor=nature_cnn, feature_extraction="mlp", **kwargs):
         super(FeedForwardPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=reuse,
                                                 scale=(feature_extraction == "cnn"))
@@ -81,20 +83,13 @@ class ImitationPolicy(FeedForwardPolicy):
 
         self._kwargs_check(feature_extraction, kwargs)
 
-        if layers is not None:
-            warnings.warn("Usage of the `layers` parameter is deprecated! Use net_arch instead "
-                          "(it has a different semantics though).", DeprecationWarning)
-            if net_arch is not None:
-                warnings.warn("The new `net_arch` parameter overrides the deprecated `layers` parameter!",
-                              DeprecationWarning)
-
         if net_arch is None:
-            if layers is None:
-                layers = [64, 64]
+            layers = [64, 64]
             net_arch = [dict(vf=layers, pi=layers)]
 
         with tf.variable_scope("model", reuse=reuse):
             if feature_extraction == "cnn":
+                # this we keep, I think
                 pi_latent = vf_latent = cnn_extractor(self.processed_obs, **kwargs)
             else:
                 pi_latent, vf_latent = mlp_extractor(tf.layers.flatten(self.processed_obs), net_arch, act_fun)
@@ -105,6 +100,7 @@ class ImitationPolicy(FeedForwardPolicy):
                 self.pdtype.proba_distribution_from_latent(pi_latent, vf_latent,
                                                            pi_init_scale=1.0, pi_init_bias=0.0, pi_init_std=0.125,
                                                            vf_init_scale=1.0, vf_init_bias=0.0)
+                # self.pdtype.proba_distribution_from_latent()
 
         self._setup_init()
         return

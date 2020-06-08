@@ -35,7 +35,7 @@ class MotorAngleSensor(sensor.BoxSpaceSensor):
 
   def __init__(self,
                num_motors: int,
-               noisy_reading: bool = True,
+               noisy_reading: bool = False,
                observe_sine_cosine: bool = False,
                lower_bound: _FLOAT_OR_ARRAY = -np.pi,
                upper_bound: _FLOAT_OR_ARRAY = np.pi,
@@ -88,7 +88,7 @@ class MinitaurLegPoseSensor(sensor.BoxSpaceSensor):
 
   def __init__(self,
                num_motors: int,
-               noisy_reading: bool = True,
+               noisy_reading: bool = False,
                observe_sine_cosine: bool = False,
                lower_bound: _FLOAT_OR_ARRAY = -np.pi,
                upper_bound: _FLOAT_OR_ARRAY = np.pi,
@@ -338,8 +338,8 @@ class BasePositionSensor(sensor.BoxSpaceSensor):
     super(BasePositionSensor, self).__init__(
         name=name,
         shape=(3,),  # x, y, z
-        lower_bound=lower_bound,
-        upper_bound=upper_bound,
+        lower_bound=np.array([lower_bound] * 3),
+        upper_bound=np.array([upper_bound] * 3),
         dtype=dtype)
 
   def _get_observation(self) -> _ARRAY:

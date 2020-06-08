@@ -64,6 +64,8 @@ class MinitaurPoseOffsetGenerator(object):
     self.action_space = spaces.Box(-action_high, action_high, dtype=np.float32)
     self._action_scale = action_scale
 
+
+
   def reset(self):
     pass
 
@@ -80,6 +82,9 @@ class MinitaurPoseOffsetGenerator(object):
     del current_time
     return minitaur_pose_utils.leg_pose_to_motor_angles(
         self._pose + self._action_scale * np.array(input_action))
+
+
+    return
 
   def get_observation(self, input_observation):
     """Get the trajectory generator's observation."""
