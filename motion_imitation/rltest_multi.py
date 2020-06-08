@@ -52,6 +52,10 @@ class Worker(object):
         self.policy_params = policy_params
         if policy_params['type'] == 'linear':
             self.policy = LinearPolicy(policy_params)
+        elif policy_params['type'] == 'honly':
+            self.policy = HLinearPolicyHOnly(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
         else:
             self.policy = HLinearPolicy(policy_params)
             if params['initweights'] != None:
@@ -219,6 +223,10 @@ class ARSLearner(object):
             if params['initweights'] != None:
                 self.policy.loadWeights(params['initweights'])
             self.w_policy = self.policy.get_weights()
+        elif policy_params['type'] == 'honly':
+            self.policy = HLinearPolicyHOnly(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
         else:
             raise NotImplementedError
 
@@ -397,7 +405,7 @@ def run_ars(params):
     ac_dim = env.action_space.shape[0] #should be 12+33
 
     # set policy parameters. Possible filters: 'MeanStdFilter' for v2, 'NoFilter' for v1.
-    policy_params={'type':'hlinear',
+    policy_params={'type':params['policy_type'],
                    'ob_filter':params['filter'],
                    'ob_dim':ob_dim,
                    'ac_dim':ac_dim,
@@ -440,7 +448,7 @@ if __name__ == '__main__':
     # for Humanoid-v1 used shift = 5
     parser.add_argument('--shift', type=float, default=0)
     parser.add_argument('--seed', type=int, default=237)
-    parser.add_argument('--policy_type', type=str, default='linear')
+    parser.add_argument('--policy_type', type=str, default='hlinear')
     parser.add_argument('--dir_path', type=str, default='data')
 
     # for ARS V1 use filter = 'NoFilter'
