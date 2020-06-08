@@ -7,3 +7,4 @@ tensorflow==1.14.0
 tensorboard==1.14.0
 typing==3.7.4.1
 stable-baselines==2.10.0
+ray==2.0.3

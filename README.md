@@ -1,6 +1,8 @@
-# Motion Imitation
-
-This repository contains code accompanying the paper:
+# Hierarchical Locomotion and Path Planning
+This repository contains code for training and evaluating hierarchical policies
+fo
+The code borrows the environment and robot constructions and is adapted
+from the code provided alongside the paper:
 
 "Learning Agile Robotic Locomotion Skills by Imitating Animals",
 
@@ -12,46 +14,31 @@ Project page: https://xbpeng.github.io/projects/Robotic_Imitation/index.html
 
 Install dependencies:
 
-- Install MPI: `sudo apt install libopenmpi-dev`
 - Install requirements: `pip3 install -r requirements.txt`
 
-and it should be good to go.
 
 ## Training Models
 
-To train a policy, run the following command:
+To train a policy using a single thread, run the following command:
 
-``python3 motion_imitation/run.py --mode train --motion_file motion_imitation/data/motions/dog_pace.txt --int_save_freq 10000000 --visualize``
+``python3 motion_imitation/rltest.py --mode train --motion_file motion_imitation/data/motions/dog_pace.txt --visualize``
 
-- `--mode` can be either `train` or `test`.
-- `--motion_file` specifies the reference motion that the robot is to imitate. `motion_imitation/data/motions/` contains different reference motion clips.
-- `--int_save_freq` specifies the frequency for saving intermediate policies every n policy steps.
+- `--mode` can be either `train`, or `test`, `path`,`sweep` for evaluation
+and generation of log files for plotting.
+- `--motion_file` specifies the reference motion that the robot uses for pose
+initialization. `motion_imitation/data/motions/` contains different reference motion clips.
+Here we are not using the full motion, but only take frames for initialization if set.
 - `--visualize` enables visualization, and rendering can be disabled by removing the flag.
-- the trained model and logs will be written to `output/`.
-
-For parallel training with MPI run:
-
-``mpiexec -n 8 python3 motion_imitation/run.py --mode train --motion_file motion_imitation/data/motions/dog_pace.txt --int_save_freq 10000000``
-
-- `-n` is the number of parallel.
-
-## Testing Models
-
-To test a trained model, run the following command
-
-``python3 motion_imitation/run.py --mode test --motion_file motion_imitation/data/motions/dog_pace.txt --model_file motion_imitation/data/policies/dog_pace.zip --visualize``
-
-- `--model_file` specifies the `.zip` file that contains the trained model. Pretrained models are available in `motion_imitation/data/policies/`.
 
 
-## Data
+For parallel training with Ray, run:
 
-- `motion_imitation/data/motions/` contains different reference motion clips.
-- `motion_imitation/data/policies/` contains pretrained models for the different reference motions.
+`ray start --head --redis-port=6379 --num-cpus=X` where X is the number of CPU's available
 
-For more information on the reference motion data format, see the [DeepMimic documentation](https://github.com/xbpeng/DeepMimic)
-
----
-
-*Disclaimer: This is not an official Google product.*
-
+- `--n_directions` number of directions to test to obtain reward gradient
+- `--deltas_used` number of best directions to update after each iteration
+- `--n_workers` number of parallel workers for ARS learning
+- `--rollout_length` number of steps per rollout (episode)
+- `--currsteps` 0 to turn off curriculum lengthening or curriculum length
+- `--actionlim` limit of motor angle corrections [0,1]
+- `--saveniters` save weights and log data every n iterations

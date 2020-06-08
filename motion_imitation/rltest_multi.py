@@ -40,7 +40,8 @@ class Worker(object):
                                                 enable_randomizer=False,
                                                 enable_rendering=params['visualize'],
                                                 action_lim=params['actionlim'],
-                                                curr_steps=params['currsteps'])
+                                                curr_steps=params['currsteps'],
+                                                path=params['path'])
         # self.env = gym.make(env_name)
         # self.env.seed(env_seed)
 
@@ -51,8 +52,14 @@ class Worker(object):
         self.policy_params = policy_params
         if policy_params['type'] == 'linear':
             self.policy = LinearPolicy(policy_params)
+        elif policy_params['type'] == 'honly':
+            self.policy = HLinearPolicyHOnly(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
         else:
             self.policy = HLinearPolicy(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
 
         self.delta_std = delta_std
         self.rollout_length = rollout_length
@@ -77,7 +84,7 @@ class Worker(object):
 
         total_reward = 0.
         steps = 0
-
+        self.policy.reset()
         ob = self.env.reset()
         for i in range(rollout_length):
             action = self.policy.act(ob)
@@ -175,7 +182,8 @@ class ARSLearner(object):
                                                 enable_randomizer=False,
                                                 enable_rendering=params['visualize'],
                                                 action_lim=params['actionlim'],
-                                                curr_steps=params['currsteps'])
+                                                curr_steps=params['currsteps'],
+                                                path=params['path'])
         self.timesteps = 0
         self.action_size = env.action_space.shape[0]
         self.ob_size = env.observation_space.shape[0]
@@ -212,6 +220,13 @@ class ARSLearner(object):
         # initialize policy
         if policy_params['type'] == 'hlinear':
             self.policy = HLinearPolicy(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
+            self.w_policy = self.policy.get_weights()
+        elif policy_params['type'] == 'honly':
+            self.policy = HLinearPolicyHOnly(policy_params)
+            if params['initweights'] != None:
+                self.policy.loadWeights(params['initweights'])
             self.w_policy = self.policy.get_weights()
         else:
             raise NotImplementedError
@@ -324,9 +339,9 @@ class ARSLearner(object):
             # record statistics every 10 iterations
             if ((i + 1) % self.params['saveniters'] == 0):
 
-                rewards = self.aggregate_rollouts(num_rollouts = 100, evaluate = True)
+                rewards = self.aggregate_rollouts(num_rollouts = 30, evaluate = True)
                 w = ray.get(self.workers[0].get_weights_plus_stats.remote())
-                np.savez(self.logdir + "/HPolicy_" + (i+1), w)
+                np.savez(self.logdir + "/HPolicy_" + str(i+1), w)
 
                 print(sorted(self.params.items()))
                 logz.log_tabular("Time", time.time() - start)
@@ -382,7 +397,8 @@ def run_ars(params):
                                             enable_randomizer=False,
                                             enable_rendering=params['visualize'],
                                             action_lim=params['actionlim'],
-                                            curr_steps=params['currsteps'])
+                                            curr_steps=params['currsteps'],
+                                            path=params['path'])
     # env = gym.make(params['env_name'])
     # env = wrappers.Monitor(env, monitor_dir, force=True)
     ob_dim = env.observation_space.shape[0] #should be 4+4+12+33
@@ -390,7 +406,7 @@ def run_ars(params):
     ac_dim = env.action_space.shape[0] #should be 12+33
 
     # set policy parameters. Possible filters: 'MeanStdFilter' for v2, 'NoFilter' for v1.
-    policy_params={'type':'hlinear',
+    policy_params={'type':params['policy_type'],
                    'ob_filter':params['filter'],
                    'ob_dim':ob_dim,
                    'ac_dim':ac_dim,
@@ -433,7 +449,7 @@ if __name__ == '__main__':
     # for Humanoid-v1 used shift = 5
     parser.add_argument('--shift', type=float, default=0)
     parser.add_argument('--seed', type=int, default=237)
-    parser.add_argument('--policy_type', type=str, default='linear')
+    parser.add_argument('--policy_type', type=str, default='hlinear')
     parser.add_argument('--dir_path', type=str, default='data')
 
     # for ARS V1 use filter = 'NoFilter'
@@ -445,6 +461,8 @@ if __name__ == '__main__':
     parser.add_argument("--actionlim", dest="actionlim", type=float, default=0.2)
     parser.add_argument("--currsteps", dest="currsteps", type=int, default=0)
     parser.add_argument("--saveniters", dest="saveniters", type=int, default=10)
+    parser.add_argument("--initweights", dest="initweights", type=str, default=None)
+    parser.add_argument("--path", dest="path", type=int, default=0)
 
     local_ip = socket.gethostbyname(socket.gethostname())
     ray.init(address= local_ip + ':6379')
