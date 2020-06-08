@@ -97,7 +97,7 @@ def imitation_terminal_condition(env,
   elif path == 3: #circle with radium 10
       out_of_path = np.sqrt(y_pos**2+x_pos**2) > 10
   elif path == 4:
-      f = np.exp(-((x_pos-5)**2)/3)/sqrt(0.25)
+      f = np.exp(-((x_pos-5)**2)/3)/np.sqrt(0.25)
       out_of_path = y_pos < f-0.5 or y_pos > f+0.5
   else: #default downwards facing parabola
       f = -0.07*x_pos**2+0.7*x_pos
