@@ -67,6 +67,9 @@ class LocomotionGymEnv(gym.Env):
     self._robot_class = robot_class
     self._robot_sensors = robot_sensors
 
+    self.output_buffer = np.array([[0, 0]])
+    self._buffer_iteration = 0
+
     self._sensors = env_sensors if env_sensors is not None else list()
     if self._robot_class is None:
       raise ValueError('robot_class cannot be None.')
@@ -144,6 +147,7 @@ class LocomotionGymEnv(gym.Env):
     # will reconstruct the observation_space after the robot is created.
     self.observation_space = (
         space_utils.convert_sensors_to_gym_space_dictionary(self.all_sensors()))
+
 
   def close(self):
     if hasattr(self, '_robot') and self._robot:
@@ -233,6 +237,9 @@ class LocomotionGymEnv(gym.Env):
     for env_randomizer in self._env_randomizers:
       env_randomizer.randomize_env(self)
 
+    if self._buffer_iteration < 40:
+      self._buffer_iteration += 1
+
     return self._get_observation()
 
   def step(self, action):
@@ -303,7 +310,24 @@ class LocomotionGymEnv(gym.Env):
     self._env_step_counter += 1
     if done:
       self._robot.Terminate()
+
+    self.save_buffer()
+
     return self._get_observation(), reward, done, {}
+
+
+  def save_buffer(self):
+
+    if self._buffer_iteration < 40:
+      self.output_buffer = np.append(self.output_buffer, [self._robot.GetBasePosition()[:2]],axis=0)
+
+    if self._buffer_iteration == 40:
+      print("printing ppo path")
+      np.savetxt("ppo_path.csv", X=self.output_buffer, delimiter=",")
+      self._buffer_iteration += 1
+
+
+    # if self.output_buffer.size[1] >
 
   def render(self, mode='rgb_array'):
     if mode != 'rgb_array':

@@ -596,10 +596,10 @@ class ImitationTask(object):
         # print('rp:',[r,p])
         # print('drdp:',[dr,dp])
         # print('Goal Reward:',reward)
-        reward = 0.01*np.exp(-abs(r)) + \
-                    0.01*np.exp(-abs(p)) + \
-                    0.01*np.exp(-abs(dr)) + \
-                    0.01*np.exp(-abs(dp))
+        reward = 1.0*np.exp(-abs(r)) + \
+                    1.0*np.exp(-abs(p)) + \
+                    1.0*np.exp(-abs(dr)) + \
+                    1.0*np.exp(-abs(dp))
         return reward
     def _load_ref_motions(self, filenames):
         """Load reference motions.
