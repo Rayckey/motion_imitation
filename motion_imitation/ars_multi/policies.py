@@ -155,10 +155,10 @@ class HLinearPolicyHOnly(Policy):
         return theta_l@np.concatenate((ob_l, self.latent_comm))+theta_b
 
 
-    def reshapeFromFlat(self, h,l):
-        h = h.reshape((self.latent_dim + 1,self.ob_h_dim))
-        l = l[:self.theta_l_size].reshape((self.ac_dim,(self.latent_dim+self.ob_l_dim)))
-        b = l[self.theta_l_size:].reshape((self.ac_dim,))
+    def reshapeFromFlat(self, high,low):
+        h = high.reshape((self.latent_dim + 1,self.ob_h_dim))
+        l = low[:self.theta_l_size].reshape((self.ac_dim,(self.latent_dim+self.ob_l_dim)))
+        b = low[self.theta_l_size:].reshape((self.ac_dim,))
         return [h,l,b]
 
     def get_weights_plus_stats(self):
