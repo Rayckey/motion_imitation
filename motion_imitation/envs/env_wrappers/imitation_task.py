@@ -60,7 +60,8 @@ class ImitationTask(object):
                  tar_obs_noise=None,
                  draw_ref_model_alpha=0.5,
                  goal=np.array([10, 0, 0.48]),
-                 tg_init_position=np.zeros([12])):
+                 tg_init_position=np.zeros([12]),
+                 path=0):
         """Initializes the task.
     Args:
       weight: Float. The scaling factor for the reward.
@@ -169,6 +170,7 @@ class ImitationTask(object):
         self._tg_init_position = tg_init_position
         #########################################
         self._goal = goal
+        self._path = path
         return
 
     def __call__(self, env):
@@ -221,7 +223,7 @@ class ImitationTask(object):
     def done(self, env):
         """Checks if the episode is over."""
         del env
-        done = self._terminal_condition(self._env, goal = self._goal)
+        done = self._terminal_condition(self._env, goal = self._goal,path = self._path)
         return done
 
     def get_num_motions(self):
@@ -594,10 +596,10 @@ class ImitationTask(object):
         # print('rp:',[r,p])
         # print('drdp:',[dr,dp])
         # print('Goal Reward:',reward)
-        reward = 1.0*np.exp(-abs(r)) + \
-                    1.0*np.exp(-abs(p)) + \
-                    1.0*np.exp(-abs(dr)) + \
-                    1.0*np.exp(-abs(dp))
+        reward = 0.01*np.exp(-abs(r)) + \
+                    0.01*np.exp(-abs(p)) + \
+                    0.01*np.exp(-abs(dr)) + \
+                    0.01*np.exp(-abs(dp))
         return reward
     def _load_ref_motions(self, filenames):
         """Load reference motions.

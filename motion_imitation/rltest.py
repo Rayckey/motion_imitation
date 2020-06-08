@@ -5,6 +5,7 @@ import numpy as np
 import os
 import argparse
 import gym.wrappers as wrappers
+import ARS.code.logz as logz
 
 
 
@@ -160,6 +161,8 @@ class HPolicy():
     weights = np.loadtxt(file_location, delimiter=',')
     [self.theta_h,self.theta_l,self.theta_l_bias, self.theta_h_bias] = self.reshapeFromFlat(weights)
 
+  def reset(self):
+      self.time_step_h = 0
 # Two level linear policy class, for use with ARS exploration
 class HPolicyhlb():
   '''
@@ -170,7 +173,8 @@ class HPolicyhlb():
   latent_size: hyperparameter, number of dimensions of latent commands
     outputted by high level controller and given to low level controller
   '''
-  def __init__(self, input_size_h, input_size_l, latent_size, output_size, history_size):
+  def __init__(self, input_size_h, input_size_l, latent_size,
+                output_size, history_size,latentval1 = None,latentval2 = None):
     self.time_step_h = 0;
     self.latent_comm = None;
     self.input_size_h = input_size_h
@@ -183,12 +187,14 @@ class HPolicyhlb():
     self.history_size = history_size
     self.W_mean = 0
     self.W_std = 1
+    self.latentval1 = latentval1
+    self.latentval2 = latentval2
   '''
   input: all input states with the first successive states being inputs for
     the high level controller and remaining states being inputs to the low
     level controller
   '''
-  def evaluate(self, input, delta=None, direction=None):
+  def evaluate(self, input, delta=None, direction=None, latent1=None, latent2=None):
     #reshape delta from flat to shape of theta h and l
     if delta is not None:
       [delta_h,delta_l,delta_l_bias] = self.reshapeFromFlat(delta)
@@ -205,12 +211,15 @@ class HPolicyhlb():
       theta_h_temp = self.theta_h - hp.noise * delta_h
       theta_l_bias_temp = self.theta_l_bias - hp.noise * delta_l_bias
 
-    # input = (input - self.W_mean)/self.W_std
+    input = (input - self.W_mean)/self.W_std
     [input_h,input_l] = self.splitInput(input)
     if self.time_step_h <= 0:
       output_h = np.clip(theta_h_temp@input_h,-1,1)
-      self.latent_comm = output_h[0:self.latent_size]
-      self.time_step_h = np.interp(output_h[-1], (-1, 1), (100, 700))
+      if latent1 == None or latent2 == None:
+          self.latent_comm = output_h[0:self.latent_size]
+      else:
+          self.latent_comm = np.asarray([latent1,latent2])
+      self.time_step_h = np.interp(output_h[-1], (-1, 1), (20, 200))
     self.time_step_h -= 1
     return theta_l_temp@np.concatenate((input_l, self.latent_comm))+theta_l_bias_temp
 
@@ -269,16 +278,21 @@ class HPolicyhlb():
     self.W_std = lin_policy[2]
     [self.theta_h,self.theta_l,self.theta_l_bias] = self.reshapeFromFlat(M)
 
-
+  def reset(self):
+      self.time_step_h = 0
+  def getTimeStep(self):
+      return self.time_step_h
 # Exploring a policy in one specific direction and over one episode
-def explore(env, normalizer, policy, direction=None, delta=None):
+def explore(env, policy, normalizer=None, direction=None, delta=None):
   state = env.reset()
+  policy.reset()
   done = False
   num_plays = 0.
   sum_rewards = 0
   while not done and num_plays < hp.episode_length:
-    normalizer.observe(state)
-    state = normalizer.normalize(state)
+    if normalizer != None:
+        normalizer.observe(state)
+        state = normalizer.normalize(state)
     action = policy.evaluate(state, delta, direction)
     state, reward, done, _ = env.step(action)
     sum_rewards += reward
@@ -302,11 +316,11 @@ def train(env, policy, normalizer, hp):
 
     # Getting the positive rewards in the positive directions
     for k in range(hp.nb_directions):
-      positive_rewards[k] = explore(env, normalizer, policy, direction="positive", delta=deltas[k])
+      positive_rewards[k] = explore(env, policy, normalizer, direction="positive", delta=deltas[k])
 
     # Getting the negative rewards in the negative/opposite directions
     for k in range(hp.nb_directions):
-      negative_rewards[k] = explore(env, normalizer, policy, direction="negative", delta=deltas[k])
+      negative_rewards[k] = explore(env, policy, normalizer, direction="negative", delta=deltas[k])
 
     # Gathering all the positive/negative rewards to compute the standard deviation of these rewards
     all_rewards = np.array(positive_rewards + negative_rewards)
@@ -321,7 +335,7 @@ def train(env, policy, normalizer, hp):
     policy.update(rollouts, sigma_r)
 
     # Printing the final reward of the policy after the update
-    reward_evaluation = explore(env, normalizer, policy)
+    reward_evaluation = explore(env, policy, normalizer)
     saved_rewards.append(reward_evaluation)
     print('Step:', step, 'Reward:', reward_evaluation)
 
@@ -339,10 +353,66 @@ def train(env, policy, normalizer, hp):
 def test(env, policy, normalizer,weights_file = 'weights_ars/weights_0.csv', max_steps = 10):
     for step in range(max_steps):
         policy.loadWeights(file_location=weights_file)
-        reward_evaluation = explore(env, normalizer, policy)
+        reward_evaluation = explore(env, policy, normalizer = None)
         print('Reward:', reward_evaluation)
 
 
+def sweep(env, policy,steps = 5,rollouts = 30,max_steps = 60):
+    for l1 in np.linspace(-1,1,steps):
+        for l2 in np.linspace(-1,1,steps):
+            avgvx = 0
+            avgvy = 0
+            total_plays = 0
+            for i in range(rollouts):
+                state = env.reset()
+                policy.reset()
+                done = False
+                num_plays = 0.
+                sum_rewards = 0
+                while not done and num_plays < max_steps:
+                    action = policy.evaluate(state, latent1=l1, latent2=l2)
+                    state, reward, done, _ = env.step(action)
+                    num_plays += 1
+                    total_plays += 1
+                    [vx,vy,_] = env.getVel()
+                    avgvx += vx
+                    avgvy += vy
+                    logz.log_tabular("l1", l1)
+                    logz.log_tabular("l2", l2)
+                    logz.log_tabular("x", state[0])
+                    logz.log_tabular("y", state[1])
+                    logz.log_tabular("vx", vx)
+                    logz.log_tabular("vy", vy)
+                    if i == (rollouts-1) and (done or num_plays >= max_steps):
+                        logz.log_tabular("avgvx", avgvx/(total_plays))
+                        logz.log_tabular("avgvy", avgvy/(total_plays))
+                    else:
+                        logz.log_tabular("avgvx", 0)
+                        logz.log_tabular("avgvy", 0)
+                    logz.dump_tabular(printlog = False)
+
+
+def path(env, policy,rollouts = 100):
+    for i in range(rollouts):
+        state = env.reset()
+        policy.reset()
+        done = False
+        num_plays = 0.
+        sum_rewards = 0
+        while not done and num_plays < hp.episode_length:
+            action = policy.evaluate(state)
+            state, reward, done, _ = env.step(action)
+            logz.log_tabular("x", state[0])
+            logz.log_tabular("y", state[1])
+            ts = policy.getTimeStep()
+            if ts <= 0:
+                logz.log_tabular("highcommx", state[0])
+                logz.log_tabular("highcommy", state[1])
+            else:
+                logz.log_tabular("highcommx", 0)
+                logz.log_tabular("highcommy", 0)
+            logz.dump_tabular(printlog=False)
+            num_plays += 1
 
 # MAIN FUCTION
 import envs.env_builder as env_builder
@@ -371,6 +441,8 @@ arg_parser.add_argument("--teststeps", dest="teststeps", type=int, default=10)
 arg_parser.add_argument("--actionlim", dest="actionlim", type=float, default=0.2)
 arg_parser.add_argument("--savefolder", dest="savefolder", type=str, default="save_data_1")
 arg_parser.add_argument("--policytype", dest="policytype", type=int, default=0)
+arg_parser.add_argument("--latentval1", dest="latentval1", type=float, default=None)
+arg_parser.add_argument("--latentval2", dest="latentval2", type=float, default=None)
 args = arg_parser.parse_args()
 
 hp = Hp(nb_steps = args.steps,
@@ -388,7 +460,8 @@ env = env_builder.build_imitation_env(motion_files=[args.motion_file],
                                         mode=args.mode,
                                         enable_randomizer=False,
                                         enable_rendering=args.visualize,
-                                        action_lim=args.actionlim)
+                                        action_lim=args.actionlim,
+                                        curr_steps=0)
 
 #env = wrappers.Monitor(env, video_path, force=True)
 nb_inputs = env.observation_space.shape[0]
@@ -398,12 +471,43 @@ if args.policytype == 0:
                     hp.latent_dim, nb_outputs,sensor_history_num)
 else:
     policy = HPolicyhlb(input_dim_h,nb_inputs-input_dim_h,
-                hp.latent_dim, nb_outputs,sensor_history_num)
+                hp.latent_dim, nb_outputs,sensor_history_num, args.latentval1,args.latentval2)
 normalizer = Normalizer(nb_inputs)
 
 if args.mode == 'train':
   if args.weights != None:
       policy.loadWeights(args.weights)
   train(env, policy, normalizer, hp)
-else:
+elif args.mode == 'test':
   test(env, policy, normalizer, args.weights, args.teststeps)
+elif args.mode == 'sweep':
+    env = env_builder.build_imitation_env(motion_files=[args.motion_file],
+                                            num_parallel_envs=1,
+                                            mode=args.mode,
+                                            enable_randomizer=False,
+                                            enable_rendering=args.visualize,
+                                            action_lim=args.actionlim,
+                                            curr_steps=0,
+                                            path = 3)
+
+    if args.weights != None:
+        policy.loadWeights(args.weights)
+    dir_path = 'sweep'
+    if not(os.path.exists(dir_path)):
+        os.makedirs(dir_path)
+    logdir = dir_path
+    if not(os.path.exists(logdir)):
+        os.makedirs(logdir)
+    logz.configure_output_dir(logdir)
+    sweep(env,policy)
+elif args.mode == 'path':
+    if args.weights != None:
+        policy.loadWeights(args.weights)
+    dir_path = 'path'
+    if not(os.path.exists(dir_path)):
+        os.makedirs(dir_path)
+    logdir = dir_path
+    if not(os.path.exists(logdir)):
+        os.makedirs(logdir)
+    logz.configure_output_dir(logdir)
+    path(env,policy)
