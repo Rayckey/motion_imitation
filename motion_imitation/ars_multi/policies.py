@@ -137,7 +137,6 @@ class HLinearPolicyHOnly(Policy):
         self.latent_comm = None
         self.theta_h_size = (self.latent_dim + 1) * self.ob_h_dim
         self.theta_l_size = self.ac_dim*(self.latent_dim+self.ob_l_dim)
-        self.theta_size = self.ac_dim * (self.ob_l_dim + self.latent_dim + 1) + self.theta_h_size
         self.lweights = np.zeros(self.theta_l_size + self.ac_dim, dtype = np.float64)
         self.weights = np.zeros(self.theta_h_size, dtype = np.float64)
 

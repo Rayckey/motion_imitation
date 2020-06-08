@@ -389,7 +389,7 @@ def sweep(env, policy,steps = 5,rollouts = 30,max_steps = 60):
                     else:
                         logz.log_tabular("avgvx", 0)
                         logz.log_tabular("avgvy", 0)
-                    logz.dump_tabular(print=False)
+                    logz.dump_tabular(printlog = False)
 
 
 def path(env, policy,rollouts = 100):
@@ -411,7 +411,7 @@ def path(env, policy,rollouts = 100):
             else:
                 logz.log_tabular("highcommx", 0)
                 logz.log_tabular("highcommy", 0)
-            logz.dump_tabular(print=False)
+            logz.dump_tabular(printlog=False)
             num_plays += 1
 
 # MAIN FUCTION
