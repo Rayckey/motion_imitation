@@ -89,16 +89,22 @@ def imitation_terminal_condition(env,
   #define path here (ex parabola +/- 1)
   [x_pos,y_pos,z_pos] = root_pos_sim
 
-  if path == 1:
+  if path == 1: #flipped parabola
       f = 0.07*x_pos**2-0.7*x_pos
-  else:
-      f = -0.07*x_pos**2+0.7*x_pos
-  out_of_path = y_pos < f-1 or y_pos > f+1
-
-  if path == -1:
+      out_of_path = y_pos < f-1 or y_pos > f+1
+  elif path == -1: #turn off path checking
       out_of_path = false
-  elif path == 3:
+  elif path == 3: #circle with radium 10
       out_of_path = np.sqrt(y_pos**2+x_pos**2) > 10
+  elif path == 4:
+      f = np.exp(-((x_pos-5)**2)/3)/sqrt(0.25)
+      out_of_path = y_pos < f-0.5 or y_pos > f+0.5
+  else: #default downwards facing parabola
+      f = -0.07*x_pos**2+0.7*x_pos
+      out_of_path = y_pos < f-1 or y_pos > f+1
+  
+
+  
   done = contact_fall \
         or at_goal \
         or out_of_path
