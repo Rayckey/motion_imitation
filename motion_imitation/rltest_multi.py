@@ -225,6 +225,7 @@ class ARSLearner(object):
             self.w_policy = self.policy.get_weights()
         elif policy_params['type'] == 'honly':
             self.policy = HLinearPolicyHOnly(policy_params)
+            self.w_policy = self.policy.get_weights()
             if params['initweights'] != None:
                 self.policy.loadWeights(params['initweights'])
         else:
