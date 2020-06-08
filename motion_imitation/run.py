@@ -147,7 +147,8 @@ def main():
                                         num_parallel_envs=num_procs,
                                         mode=args.mode,
                                         enable_randomizer=False,
-                                        enable_rendering=args.visualize)
+                                        enable_rendering=args.visualize,
+                                    curr_steps=0)
   
   model = build_model(env=env,
                       num_procs=num_procs,

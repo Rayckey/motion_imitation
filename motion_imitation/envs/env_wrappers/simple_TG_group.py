@@ -21,7 +21,7 @@ class SimpleTGGroup(object):
             init_abduction=laikago_pose_utils.LAIKAGO_DEFAULT_ABDUCTION_ANGLE,
             init_hip=laikago_pose_utils.LAIKAGO_DEFAULT_HIP_ANGLE,
             init_knee=laikago_pose_utils.LAIKAGO_DEFAULT_KNEE_ANGLE,
-            action_limit=0.2, is_touting=2, init_f_tg=1
+            action_limit=0.2, is_touting=2, init_f_tg=2
     ):
         """Initializes the controller."""
         self._pose = np.array(
@@ -158,7 +158,7 @@ class SimpleTGGroup(object):
         if self._is_touting == 0:
             res[7] = np.pi
         else:
-            res[7] = np.pi / 4
+            res[7] = np.pi / 2
             # res[8] = 0.2
 
         # set zeros, use this when testing
@@ -173,7 +173,7 @@ class SimpleTGGroup(object):
         if self._is_touting == 0:
             res[7] = np.pi
         else:
-            res[7] = np.pi/4
+            res[7] = np.pi/ 2
             # res[8] = 0.2
 
         res *= -1
