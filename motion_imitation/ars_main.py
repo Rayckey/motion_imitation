@@ -4,11 +4,11 @@ import numpy as np
 import gym
 from gym import wrappers
 import pybullet_envs
-from motion_imitation.ars import mkdir
-from motion_imitation.ars import Hp
-from motion_imitation.ars import HPolicy
-from motion_imitation.ars import Normalizer
-from motion_imitation.ars import train
+from ARS.code.ars import mkdir
+from ARS.code.ars import Hp
+from ARS.code.ars import HPolicy
+from ARS.code.ars import Normalizer
+from ARS.code.ars import train
 
 
 

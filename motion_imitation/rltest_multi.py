@@ -10,13 +10,13 @@ import time
 import os
 import numpy as np
 import gym
-import ars_multi.logz as logz
+import ARS.code.logz as logz
 import ray
-import ars_multi.utils as utils
-import ars_multi.optimizers as optimizers
-from ars_multi.policies import *
+import ARS.code.utils as utils
+import ARS.code.optimizers as optimizers
+from ARS.code.policies import *
 import socket
-from ars_multi.shared_noise import *
+from ARS.code.shared_noise import *
 import envs.env_builder as env_builder
 
 @ray.remote

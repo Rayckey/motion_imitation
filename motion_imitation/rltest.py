@@ -5,7 +5,7 @@ import numpy as np
 import os
 import argparse
 import gym.wrappers as wrappers
-import ars_multi.logz as logz
+import ARS.code.logz as logz
 
 
 

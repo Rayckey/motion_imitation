@@ -1,0 +1,6 @@
+[submodule "motion_imitation/motion_imitation/ARS"]
+	path = motion_imitation/motion_imitation/ARS
+	url = https://github.com/Rayckey/ARS.git
+[submodule "motion_imitation/ARS"]
+	path = motion_imitation/ARS
+	url = https://github.com/Rayckey/ARS.git
